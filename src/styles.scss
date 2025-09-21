@@ -1,3 +1,12 @@
+/* Global emoji and icon styles */
+[class^="icon-"],
+[class*=" icon-"],
+.block-icon,
+.preset-icon,
+.rank-medal {
+  font-style: normal !important;
+}
+
 html {
   height: 100%;
 }

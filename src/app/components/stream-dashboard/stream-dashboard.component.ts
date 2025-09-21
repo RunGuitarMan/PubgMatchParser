@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { TournamentService } from '../../services/tournament.service';
 import { Tournament, Team, Player } from '../../models/tournament.interface';
@@ -147,6 +148,11 @@ import { Subscription, interval } from 'rxjs';
     </div>
   `,
   styles: [`
+    /* Global icon and emoji styles */
+    .rank-medal {
+      font-style: normal !important;
+    }
+
     .stream-dashboard {
       width: 100vw;
       height: 100vh;
@@ -569,8 +575,10 @@ export class StreamDashboardComponent implements OnInit, OnDestroy {
 
   // Auto-scroll
   private scrollDirection = 1; // 1 for down, -1 for up
-  private scrollSpeed = 30; // pixels per second
+  private scrollSpeed = 15; // pixels per second (slower)
   private autoScrollEnabled = false;
+  private scrollPaused = false;
+  private pauseTimer: any;
 
   ngOnInit(): void {
     this.subscribeToTournamentData();
@@ -707,9 +715,24 @@ export class StreamDashboardComponent implements OnInit, OnDestroy {
     }
 
     const lastMatch = this.currentTournament.matches
-      .sort((a, b) => new Date(b.matchData.playedAt).getTime() - new Date(a.matchData.playedAt).getTime())[0];
+      .sort((a, b) => {
+        const dateA = new Date(a.matchData.playedAt);
+        const dateB = new Date(b.matchData.playedAt);
+        if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+          return 0;
+        }
+        return dateB.getTime() - dateA.getTime();
+      })[0];
+
+    if (!lastMatch.matchData.playedAt) {
+      return 'Дата неизвестна';
+    }
 
     const date = new Date(lastMatch.matchData.playedAt);
+    if (isNaN(date.getTime())) {
+      return 'Некорректная дата';
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -759,22 +782,41 @@ export class StreamDashboardComponent implements OnInit, OnDestroy {
     const scroll = () => {
       if (!this.autoScrollEnabled || !tableBody) return;
 
+      // Skip if paused
+      if (this.scrollPaused) {
+        requestAnimationFrame(scroll);
+        return;
+      }
+
       const maxScroll = tableBody.scrollHeight - tableBody.clientHeight;
       const currentScroll = tableBody.scrollTop;
+      const threshold = 5; // Small threshold to avoid bouncing
 
-      // Change direction at extremes
-      if (currentScroll >= maxScroll) {
+      // Change direction at extremes with pause
+      if (currentScroll >= (maxScroll - threshold) && this.scrollDirection === 1) {
         this.scrollDirection = -1; // Scroll up
-      } else if (currentScroll <= 0) {
+        this.pauseScrolling(1500); // Pause for 1.5 seconds at bottom
+      } else if (currentScroll <= threshold && this.scrollDirection === -1) {
         this.scrollDirection = 1; // Scroll down
+        this.pauseScrolling(1500); // Pause for 1.5 seconds at top
       }
 
       // Scroll slowly
-      tableBody.scrollTop += this.scrollDirection * (this.scrollSpeed / 60); // 60fps
+      if (!this.scrollPaused) {
+        tableBody.scrollTop += this.scrollDirection * (this.scrollSpeed / 60); // 60fps
+      }
 
       requestAnimationFrame(scroll);
     };
 
     scroll();
+  }
+
+  private pauseScrolling(duration: number): void {
+    this.scrollPaused = true;
+    clearTimeout(this.pauseTimer);
+    this.pauseTimer = setTimeout(() => {
+      this.scrollPaused = false;
+    }, duration);
   }
 }

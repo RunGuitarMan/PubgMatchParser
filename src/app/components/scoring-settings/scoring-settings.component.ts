@@ -499,6 +499,11 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
     </div>
     `,
     styles: [`
+    /* Global emoji styles */
+    .block-icon, .preset-icon {
+      font-style: normal !important;
+    }
+
     .scoring-settings {
       background: #f8f9fa;
       border-radius: 12px;

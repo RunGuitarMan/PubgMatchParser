@@ -549,7 +549,21 @@ export class TournamentService {
 
   private loadTournament(): void {
     const data = this.storageService.loadTournament();
-    if (data) {
+    if (data && data.tournament) {
+      // Migrate old data if needed
+      if (!data.tournament.createdAt) {
+        data.tournament.createdAt = new Date().toISOString();
+      }
+
+      // Ensure all matches have valid playedAt dates
+      if (data.tournament.matches) {
+        data.tournament.matches.forEach((match: any) => {
+          if (match.matchData && !match.matchData.playedAt) {
+            match.matchData.playedAt = new Date().toISOString();
+          }
+        });
+      }
+
       this.currentTournament$.next(data.tournament);
       this.teams$.next(data.teams || []);
       this.players$.next(data.players || []);

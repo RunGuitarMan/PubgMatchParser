@@ -346,8 +346,17 @@ export class MatchSelectionModalComponent {
     this.selectedMatches.clear();
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleString('ru-RU', {
+  formatDate(dateString: string | undefined | null): string {
+    if (!dateString) {
+      return 'Дата не указана';
+    }
+
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Некорректная дата';
+    }
+
+    return date.toLocaleString('ru-RU', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

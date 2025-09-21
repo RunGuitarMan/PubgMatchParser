@@ -130,7 +130,7 @@ export class AppComponent {
                 (click)="showCreateTournamentModal = true"
                 class="primary-action-btn"
                 >
-                <i class="icon-plus"></i>
+                <i class="icon-plus">➕</i>
                 Создать турнир
               </button>
               <button
@@ -138,7 +138,7 @@ export class AppComponent {
                 (click)="showApiKeyModal = true"
                 class="secondary-action-btn"
                 >
-                <i class="icon-key"></i>
+                <i class="icon-key">🔑</i>
                 Настроить API ключ
               </button>
             </div>
@@ -160,7 +160,7 @@ export class AppComponent {
                   class="settings-btn"
                   title="Настройки API"
                   >
-                  <i class="icon-settings"></i>
+                  <i class="icon-settings">⚙️</i>
                 </button>
                 <button
                   type="button"
@@ -168,7 +168,7 @@ export class AppComponent {
                   (click)="clearTournament()"
                   title="Очистить турнир"
                   >
-                  <i class="icon-trash"></i>
+                  <i class="icon-trash">🗑️</i>
                   Очистить
                 </button>
               </div>
@@ -238,7 +238,7 @@ export class AppComponent {
                     }
                     @if (loading) {
                       <span>
-                        <i class="icon-loading"></i>
+                        <i class="icon-loading">⏳</i>
                         Загрузка...
                       </span>
                     }
@@ -271,7 +271,7 @@ export class AppComponent {
                     }
                     @if (loadingPlayer) {
                       <span>
-                        <i class="icon-loading"></i>
+                        <i class="icon-loading">⏳</i>
                         Поиск...
                       </span>
                     }
@@ -367,11 +367,30 @@ export class AppComponent {
       @if (currentTournament) {
         <div class="tournament-content">
           <div class="main-content">
-            <!-- Scoring Settings -->
-            <app-scoring-settings
-              [settings]="currentTournament.scoringSettings"
-              (settingsChange)="onScoringSettingsChange($event)"
-            ></app-scoring-settings>
+            <!-- Scoring Settings Button -->
+            <div class="scoring-settings-section">
+              <div class="section-header">
+                <h3>Настройки подсчета очков</h3>
+                <button
+                  type="button"
+                  class="settings-btn primary"
+                  (click)="showScoringSettingsModal = true"
+                  >
+                  <i class="icon-settings">⚙️</i>
+                  Открыть настройки
+                </button>
+              </div>
+              <div class="settings-summary">
+                <div class="summary-item">
+                  <span class="summary-label">Очки за убийство:</span>
+                  <span class="summary-value">{{ currentTournament.scoringSettings.killPoints }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">Тип подсчета позиций:</span>
+                  <span class="summary-value">{{ currentTournament.scoringSettings.placementScoring.type === 'fixed' ? 'Фиксированные' : 'Линейные' }}</span>
+                </div>
+              </div>
+            </div>
             <!-- Tournament Standings -->
             <app-tournament-standings
               [tournament]="currentTournament"
@@ -513,9 +532,39 @@ export class AppComponent {
           </div>
         </div>
       }
+
+      <!-- Scoring Settings Modal -->
+      @if (showScoringSettingsModal) {
+        <div class="modal-overlay" (click)="showScoringSettingsModal = false">
+          <div class="modal-content large" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Настройки подсчета очков</h3>
+              <button type="button" class="close-btn" (click)="showScoringSettingsModal = false">
+                <i class="icon-close">✕</i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <app-scoring-settings
+                [settings]="currentTournament!.scoringSettings"
+                (settingsChange)="onScoringSettingsChange($event)"
+              ></app-scoring-settings>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn primary" (click)="showScoringSettingsModal = false">
+                Применить и закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
     `,
     styles: [`
+    /* Global icon styles */
+    [class^="icon-"], [class*=" icon-"] {
+      font-style: normal !important;
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -1056,23 +1105,35 @@ export class AppComponent {
     }
 
     .tournament-title h2 {
-      margin: 0 0 0.5rem 0;
-      font-size: 2rem;
-      font-weight: 700;
+      margin: 0 0 1rem 0;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #ffffff, #f8f9fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      letter-spacing: -0.5px;
     }
 
     .tournament-mode {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 500;
+      background: linear-gradient(45deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
+      padding: 0.4rem 1rem;
+      border-radius: 25px;
+      font-size: 0.85rem;
+      font-weight: 600;
       margin-right: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .tournament-date {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.85rem;
+      font-weight: 400;
+      opacity: 0.9;
     }
 
     .tournament-actions {
@@ -1114,34 +1175,61 @@ export class AppComponent {
 
     .tournament-stats {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1.5rem;
     }
 
     .stat-card {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
-      padding: 1.5rem 1rem;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+      border-radius: 12px;
+      padding: 1.8rem 1.2rem;
       text-align: center;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      opacity: 0.8;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15));
     }
 
     .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 0.6rem;
       line-height: 1;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
 
     .stat-value.warning {
       color: #ffc107;
+      text-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
     }
 
     .stat-label {
-      font-size: 0.9rem;
-      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.85);
       font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     /* Match Section Enhanced Styles */
@@ -1297,6 +1385,10 @@ export class AppComponent {
       animation: modalFadeIn 0.2s ease;
     }
 
+    .modal-content.large {
+      max-width: 800px;
+    }
+
     @keyframes modalFadeIn {
       from {
         opacity: 0;
@@ -1429,6 +1521,84 @@ export class AppComponent {
       cursor: not-allowed;
     }
 
+    /* Scoring Settings Section */
+    .scoring-settings-section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .scoring-settings-section .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .scoring-settings-section .section-header h3 {
+      margin: 0;
+      color: #333;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .settings-btn.primary {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .settings-btn.primary:hover {
+      background: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .settings-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+    }
+
+    .summary-label {
+      font-weight: 500;
+      color: #555;
+    }
+
+    .summary-value {
+      font-weight: 600;
+      color: #333;
+      background: #007bff;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
     /* Enhanced Responsive Design */
     @media (max-width: 768px) {
       .tournament-actions {
@@ -1470,6 +1640,19 @@ export class AppComponent {
         margin: 0.5rem;
         max-width: calc(100vw - 1rem);
       }
+
+      .modal-content.large {
+        max-width: calc(100vw - 1rem);
+      }
+
+      .scoring-settings-section .section-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .settings-summary {
+        grid-template-columns: 1fr;
+      }
     }
   `]
 })
@@ -1502,6 +1685,7 @@ export class MainComponent implements OnInit {
   showConflictModal = false;
   showCreateTournamentModal = false;
   showApiKeyModal = false;
+  showScoringSettingsModal = false;
   foundMatches: PubgMatch[] = [];
   matchData: PubgMatch | null = null;
   errorMessage = '';
@@ -1718,8 +1902,23 @@ export class MainComponent implements OnInit {
     this.storageService.exportToCsv(csvData, filename);
   }
 
-  formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleString('ru-RU');
+  formatDate(dateString: string | undefined | null): string {
+    if (!dateString) {
+      return 'Дата не указана';
+    }
+
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Некорректная дата';
+    }
+
+    return date.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   formatDuration(seconds: number): string {
