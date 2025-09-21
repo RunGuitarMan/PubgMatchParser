@@ -4,10 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, DistanceScoring } from '../../models/tournament.interface';
 
 @Component({
-  selector: 'app-scoring-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-scoring-settings',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="scoring-settings">
       <div class="settings-header">
         <h3>Настройки подсчета очков</h3>
@@ -472,7 +471,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .scoring-settings {
       background: #f8f9fa;
       border-radius: 12px;

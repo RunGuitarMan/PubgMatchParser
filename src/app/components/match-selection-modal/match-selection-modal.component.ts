@@ -4,10 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { PubgMatch } from '../../models/tournament.interface';
 
 @Component({
-  selector: 'app-match-selection-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-match-selection-modal',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -64,7 +63,7 @@ import { PubgMatch } from '../../models/tournament.interface';
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .modal-overlay {
       position: fixed;
       top: 0;

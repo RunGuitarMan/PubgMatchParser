@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Tournament, Team, Player, TournamentMatch } from '../../models/tournament.interface';
 
 @Component({
-  selector: 'app-tournament-standings',
-  standalone: true,
-  imports: [CommonModule],
-  template: `
+    selector: 'app-tournament-standings',
+    imports: [CommonModule],
+    template: `
     <div class="tournament-standings" *ngIf="tournament">
       <div class="standings-header">
         <h3>Турнирная таблица</h3>
@@ -175,7 +174,7 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .tournament-standings {
       background: white;
       border-radius: 8px;

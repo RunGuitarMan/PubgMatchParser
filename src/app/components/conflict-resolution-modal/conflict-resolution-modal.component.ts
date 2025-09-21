@@ -11,10 +11,9 @@ interface ConflictResolutionForm {
 }
 
 @Component({
-  selector: 'app-conflict-resolution-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
+    selector: 'app-conflict-resolution-modal',
+    imports: [CommonModule, FormsModule],
+    template: `
     <div class="modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -143,7 +142,7 @@ interface ConflictResolutionForm {
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .modal-overlay {
       position: fixed;
       top: 0;

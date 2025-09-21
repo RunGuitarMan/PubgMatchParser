@@ -11,17 +11,16 @@ import { ConflictResolutionModalComponent } from './components/conflict-resoluti
 import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } from './models/tournament.interface';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatchSelectionModalComponent,
-    ScoringSettingsComponent,
-    TournamentStandingsComponent,
-    ConflictResolutionModalComponent
-  ],
-  template: `
+    selector: 'app-root',
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatchSelectionModalComponent,
+        ScoringSettingsComponent,
+        TournamentStandingsComponent,
+        ConflictResolutionModalComponent
+    ],
+    template: `
     <div class="container">
       <header class="header">
         <h1 class="title">PUBG Tournament Helper</h1>
@@ -406,7 +405,7 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
       </div>
     </div>
   `,
-  styles: [`
+    styles: [`
     .container {
       max-width: 1200px;
       margin: 0 auto;
