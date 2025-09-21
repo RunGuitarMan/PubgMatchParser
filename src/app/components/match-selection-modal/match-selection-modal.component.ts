@@ -1,68 +1,68 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { PubgMatch } from '../../models/tournament.interface';
 
 @Component({
     selector: 'app-match-selection-modal',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     template: `
-    <div class="modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h2>Выберите матчи для турнира</h2>
-          <button class="close-btn" (click)="onClose()">&times;</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="actions">
-            <button class="action-btn" (click)="selectAll()">Выбрать все</button>
-            <button class="action-btn" (click)="deselectAll()">Снять выделение</button>
-            <span class="selected-count">Выбрано: {{ selectedMatches.size }}</span>
+    @if (isVisible) {
+      <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Выберите матчи для турнира</h2>
+            <button class="close-btn" (click)="onClose()">&times;</button>
           </div>
-
-          <div class="matches-list">
-            <div
-              *ngFor="let match of matches"
-              class="match-item"
-              [class.selected]="selectedMatches.has(match.id)"
-            >
-              <label class="match-checkbox">
-                <input
-                  type="checkbox"
-                  [checked]="selectedMatches.has(match.id)"
-                  (change)="toggleMatch(match.id)"
-                />
-                <div class="match-info">
-                  <div class="match-header">
-                    <span class="match-id">{{ match.id }}</span>
-                    <span class="match-date">{{ formatDate(match.playedAt) }}</span>
-                  </div>
-                  <div class="match-details">
-                    <span class="match-map">{{ match.mapName }}</span>
-                    <span class="match-mode">{{ match.gameMode }}</span>
-                    <span class="match-duration">{{ formatDuration(match.duration) }}</span>
-                    <span class="participants-count">{{ match.participants.length }} игроков</span>
-                  </div>
+          <div class="modal-body">
+            <div class="actions">
+              <button class="action-btn" (click)="selectAll()">Выбрать все</button>
+              <button class="action-btn" (click)="deselectAll()">Снять выделение</button>
+              <span class="selected-count">Выбрано: {{ selectedMatches.size }}</span>
+            </div>
+            <div class="matches-list">
+              @for (match of matches; track match) {
+                <div
+                  class="match-item"
+                  [class.selected]="selectedMatches.has(match.id)"
+                  >
+                  <label class="match-checkbox">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedMatches.has(match.id)"
+                      (change)="toggleMatch(match.id)"
+                      />
+                    <div class="match-info">
+                      <div class="match-header">
+                        <span class="match-id">{{ match.id }}</span>
+                        <span class="match-date">{{ formatDate(match.playedAt) }}</span>
+                      </div>
+                      <div class="match-details">
+                        <span class="match-map">{{ match.mapName }}</span>
+                        <span class="match-mode">{{ match.gameMode }}</span>
+                        <span class="match-duration">{{ formatDuration(match.duration) }}</span>
+                        <span class="participants-count">{{ match.participants.length }} игроков</span>
+                      </div>
+                    </div>
+                  </label>
                 </div>
-              </label>
+              }
             </div>
           </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="cancel-btn" (click)="onClose()">Отмена</button>
-          <button
-            class="confirm-btn"
-            [disabled]="selectedMatches.size === 0"
-            (click)="onConfirm()"
-          >
-            Добавить матчи ({{ selectedMatches.size }})
-          </button>
+          <div class="modal-footer">
+            <button class="cancel-btn" (click)="onClose()">Отмена</button>
+            <button
+              class="confirm-btn"
+              [disabled]="selectedMatches.size === 0"
+              (click)="onConfirm()"
+              >
+              Добавить матчи ({{ selectedMatches.size }})
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  `,
+    }
+    `,
     styles: [`
     .modal-overlay {
       position: fixed;

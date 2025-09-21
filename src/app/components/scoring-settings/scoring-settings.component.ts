@@ -1,18 +1,18 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, DistanceScoring } from '../../models/tournament.interface';
 
 @Component({
     selector: 'app-scoring-settings',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     template: `
     <div class="scoring-settings">
       <div class="settings-header">
         <h3>Настройки подсчета очков</h3>
         <p class="settings-description">Настройте систему начисления очков для турнира</p>
       </div>
-
+    
       <div class="settings-grid">
         <!-- Basic Settings Block -->
         <div class="settings-block basic-settings">
@@ -33,7 +33,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                     [(ngModel)]="localSettings.mode"
                     value="solo"
                     (change)="onSettingsChange()"
-                  />
+                    />
                   <span>Solo (индивидуальный)</span>
                 </label>
                 <label class="radio-option">
@@ -42,7 +42,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                     [(ngModel)]="localSettings.mode"
                     value="team"
                     (change)="onSettingsChange()"
-                  />
+                    />
                   <span>Team (командный)</span>
                 </label>
               </div>
@@ -57,13 +57,13 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                   class="number-input"
                   min="0"
                   step="0.1"
-                />
+                  />
                 <small class="input-description">Количество очков за каждое убийство</small>
               </div>
             </div>
           </div>
         </div>
-
+    
         <!-- Placement Scoring Block -->
         <div class="settings-block placement-settings">
           <div class="block-header">
@@ -83,7 +83,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                     [(ngModel)]="localSettings.placementScoring.type"
                     value="fixed"
                     (change)="onSettingsChange()"
-                  />
+                    />
                   <span>Фиксированные очки</span>
                 </label>
                 <label class="radio-option">
@@ -92,17 +92,21 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                     [(ngModel)]="localSettings.placementScoring.type"
                     value="multiplier"
                     (change)="onSettingsChange()"
-                  />
+                    />
                   <span>Множитель очков</span>
                 </label>
               </div>
               <small class="help-text">
-                <span *ngIf="localSettings.placementScoring.type === 'fixed'">
-                  Фиксированные очки добавляются к очкам за убийства
-                </span>
-                <span *ngIf="localSettings.placementScoring.type === 'multiplier'">
-                  Очки за убийства умножаются на множитель места
-                </span>
+                @if (localSettings.placementScoring.type === 'fixed') {
+                  <span>
+                    Фиксированные очки добавляются к очкам за убийства
+                  </span>
+                }
+                @if (localSettings.placementScoring.type === 'multiplier') {
+                  <span>
+                    Очки за убийства умножаются на множитель места
+                  </span>
+                }
               </small>
             </div>
             <div class="setting-item">
@@ -110,25 +114,26 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                 {{ localSettings.placementScoring.type === 'fixed' ? 'Очки за места' : 'Множители за места' }}
               </label>
               <div class="placement-grid">
-                <div
-                  *ngFor="let position of positions; trackBy: trackByPosition"
-                  class="placement-item"
-                >
-                  <label class="placement-label">{{ position }} место:</label>
-                  <input
-                    type="number"
-                    [(ngModel)]="localSettings.placementScoring.values[position]"
-                    (change)="onSettingsChange()"
-                    class="placement-input"
-                    [min]="localSettings.placementScoring.type === 'multiplier' ? 0 : 0"
-                    step="0.1"
-                  />
-                </div>
+                @for (position of positions; track trackByPosition($index, position)) {
+                  <div
+                    class="placement-item"
+                    >
+                    <label class="placement-label">{{ position }} место:</label>
+                    <input
+                      type="number"
+                      [(ngModel)]="localSettings.placementScoring.values[position]"
+                      (change)="onSettingsChange()"
+                      class="placement-input"
+                      [min]="localSettings.placementScoring.type === 'multiplier' ? 0 : 0"
+                      step="0.1"
+                      />
+                  </div>
+                }
               </div>
             </div>
           </div>
         </div>
-
+    
         <!-- Damage Points Block -->
         <div class="settings-block damage-settings">
           <div class="block-header">
@@ -143,46 +148,50 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                   type="checkbox"
                   [(ngModel)]="localSettings.damagePoints!.enabled"
                   (change)="onSettingsChange()"
-                />
+                  />
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </div>
-          <div class="block-content" *ngIf="localSettings.damagePoints?.enabled">
-            <div class="setting-item">
-              <label class="setting-label">Очков за урон</label>
-              <div class="input-with-description">
-                <input
-                  type="number"
-                  [(ngModel)]="localSettings.damagePoints!.pointsPerDamage"
-                  (change)="onSettingsChange()"
-                  class="number-input"
-                  min="0"
-                  step="0.1"
-                />
-                <small class="input-description">Количество очков за каждый урон</small>
+          @if (localSettings.damagePoints?.enabled) {
+            <div class="block-content">
+              <div class="setting-item">
+                <label class="setting-label">Очков за урон</label>
+                <div class="input-with-description">
+                  <input
+                    type="number"
+                    [(ngModel)]="localSettings.damagePoints!.pointsPerDamage"
+                    (change)="onSettingsChange()"
+                    class="number-input"
+                    min="0"
+                    step="0.1"
+                    />
+                  <small class="input-description">Количество очков за каждый урон</small>
+                </div>
+              </div>
+              <div class="setting-item">
+                <label class="setting-label">Урона за 1 очко</label>
+                <div class="input-with-description">
+                  <input
+                    type="number"
+                    [(ngModel)]="localSettings.damagePoints!.damageThreshold"
+                    (change)="onSettingsChange()"
+                    class="number-input"
+                    min="1"
+                    step="1"
+                    />
+                  <small class="input-description">Сколько единиц урона дает 1 очко</small>
+                </div>
               </div>
             </div>
-            <div class="setting-item">
-              <label class="setting-label">Урона за 1 очко</label>
-              <div class="input-with-description">
-                <input
-                  type="number"
-                  [(ngModel)]="localSettings.damagePoints!.damageThreshold"
-                  (change)="onSettingsChange()"
-                  class="number-input"
-                  min="1"
-                  step="1"
-                />
-                <small class="input-description">Сколько единиц урона дает 1 очко</small>
-              </div>
+          }
+          @if (!localSettings.damagePoints?.enabled) {
+            <div class="block-content disabled-state">
+              <p class="disabled-message">Очки за урон отключены</p>
             </div>
-          </div>
-          <div class="block-content disabled-state" *ngIf="!localSettings.damagePoints?.enabled">
-            <p class="disabled-message">Очки за урон отключены</p>
-          </div>
+          }
         </div>
-
+    
         <!-- Distance Points Block -->
         <div class="settings-block distance-settings">
           <div class="block-header">
@@ -197,167 +206,181 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                   type="checkbox"
                   [(ngModel)]="localSettings.distancePoints!.enabled"
                   (change)="onSettingsChange()"
-                />
+                  />
                 <span class="toggle-slider"></span>
               </label>
             </div>
           </div>
-          <div class="block-content" *ngIf="localSettings.distancePoints?.enabled">
-            <!-- Walking Distance -->
-            <div class="distance-category">
-              <div class="category-header">
-                <div class="category-info">
-                  <span class="category-icon">🚶</span>
-                  <span class="category-name">Пешком</span>
-                </div>
-                <label class="toggle-switch small">
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="localSettings.distancePoints!.walk.enabled"
-                    (change)="onSettingsChange()"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div *ngIf="localSettings.distancePoints && localSettings.distancePoints.walk && localSettings.distancePoints.walk.enabled" class="threshold-settings">
-                <div *ngFor="let threshold of localSettings.distancePoints!.walk.thresholds; let i = index; trackBy: trackByIndex" class="threshold-row">
-                  <div class="threshold-inputs">
-                    <div class="input-with-label">
-                      <label>Дистанция (м)</label>
-                      <input
-                        type="number"
-                        [(ngModel)]="threshold.distance"
-                        (change)="onSettingsChange()"
-                        class="number-input small"
-                        min="0"
-                        step="100"
-                        placeholder="1000"
-                      />
-                    </div>
-                    <div class="input-with-label">
-                      <label>Очки</label>
-                      <input
-                        type="number"
-                        [(ngModel)]="threshold.points"
-                        (change)="onSettingsChange()"
-                        class="number-input small"
-                        min="0"
-                        step="0.1"
-                        placeholder="1.0"
-                      />
-                    </div>
+          @if (localSettings.distancePoints?.enabled) {
+            <div class="block-content">
+              <!-- Walking Distance -->
+              <div class="distance-category">
+                <div class="category-header">
+                  <div class="category-info">
+                    <span class="category-icon">🚶</span>
+                    <span class="category-name">Пешком</span>
                   </div>
-                  <button type="button" class="remove-btn" (click)="removeThreshold('walk', i)" title="Удалить порог">✕</button>
+                  <label class="toggle-switch small">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="localSettings.distancePoints!.walk.enabled"
+                      (change)="onSettingsChange()"
+                      />
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
-                <button type="button" class="add-btn" (click)="addThreshold('walk')">+ Добавить порог</button>
+                @if (localSettings.distancePoints && localSettings.distancePoints.walk && localSettings.distancePoints.walk.enabled) {
+                  <div class="threshold-settings">
+                    @for (threshold of localSettings.distancePoints!.walk.thresholds; track trackByIndex(i); let i = $index) {
+                      <div class="threshold-row">
+                        <div class="threshold-inputs">
+                          <div class="input-with-label">
+                            <label>Дистанция (м)</label>
+                            <input
+                              type="number"
+                              [(ngModel)]="threshold.distance"
+                              (change)="onSettingsChange()"
+                              class="number-input small"
+                              min="0"
+                              step="100"
+                              placeholder="1000"
+                              />
+                          </div>
+                          <div class="input-with-label">
+                            <label>Очки</label>
+                            <input
+                              type="number"
+                              [(ngModel)]="threshold.points"
+                              (change)="onSettingsChange()"
+                              class="number-input small"
+                              min="0"
+                              step="0.1"
+                              placeholder="1.0"
+                              />
+                          </div>
+                        </div>
+                        <button type="button" class="remove-btn" (click)="removeThreshold('walk', i)" title="Удалить порог">✕</button>
+                      </div>
+                    }
+                    <button type="button" class="add-btn" (click)="addThreshold('walk')">+ Добавить порог</button>
+                  </div>
+                }
+              </div>
+              <!-- Riding Distance -->
+              <div class="distance-category">
+                <div class="category-header">
+                  <div class="category-info">
+                    <span class="category-icon">🚗</span>
+                    <span class="category-name">Транспорт</span>
+                  </div>
+                  <label class="toggle-switch small">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="localSettings.distancePoints!.ride.enabled"
+                      (change)="onSettingsChange()"
+                      />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                @if (localSettings.distancePoints && localSettings.distancePoints.ride && localSettings.distancePoints.ride.enabled) {
+                  <div class="threshold-settings">
+                    @for (threshold of localSettings.distancePoints!.ride.thresholds; track trackByIndex(i); let i = $index) {
+                      <div class="threshold-row">
+                        <div class="threshold-inputs">
+                          <div class="input-with-label">
+                            <label>Дистанция (м)</label>
+                            <input
+                              type="number"
+                              [(ngModel)]="threshold.distance"
+                              (change)="onSettingsChange()"
+                              class="number-input small"
+                              min="0"
+                              step="100"
+                              placeholder="2000"
+                              />
+                          </div>
+                          <div class="input-with-label">
+                            <label>Очки</label>
+                            <input
+                              type="number"
+                              [(ngModel)]="threshold.points"
+                              (change)="onSettingsChange()"
+                              class="number-input small"
+                              min="0"
+                              step="0.1"
+                              placeholder="0.5"
+                              />
+                          </div>
+                        </div>
+                        <button type="button" class="remove-btn" (click)="removeThreshold('ride', i)" title="Удалить порог">✕</button>
+                      </div>
+                    }
+                    <button type="button" class="add-btn" (click)="addThreshold('ride')">+ Добавить порог</button>
+                  </div>
+                }
+              </div>
+              <!-- Swimming Distance -->
+              <div class="distance-category">
+                <div class="category-header">
+                  <div class="category-info">
+                    <span class="category-icon">🏊</span>
+                    <span class="category-name">Плавание</span>
+                  </div>
+                  <label class="toggle-switch small">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="localSettings.distancePoints!.swim.enabled"
+                      (change)="onSettingsChange()"
+                      />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                @if (localSettings.distancePoints && localSettings.distancePoints.swim && localSettings.distancePoints.swim.enabled) {
+                  <div class="threshold-settings">
+                    @for (threshold of localSettings.distancePoints!.swim.thresholds; track trackByIndex(i); let i = $index) {
+                      <div class="threshold-row">
+                        <div class="threshold-inputs">
+                          <div class="input-with-label">
+                            <label>Дистанция (м)</label>
+                            <input
+                              type="number"
+                              [(ngModel)]="threshold.distance"
+                              (change)="onSettingsChange()"
+                              class="number-input small"
+                              min="0"
+                              step="50"
+                              placeholder="500"
+                              />
+                          </div>
+                          <div class="input-with-label">
+                            <label>Очки</label>
+                            <input
+                              type="number"
+                              [(ngModel)]="threshold.points"
+                              (change)="onSettingsChange()"
+                              class="number-input small"
+                              min="0"
+                              step="0.1"
+                              placeholder="0.2"
+                              />
+                          </div>
+                        </div>
+                        <button type="button" class="remove-btn" (click)="removeThreshold('swim', i)" title="Удалить порог">✕</button>
+                      </div>
+                    }
+                    <button type="button" class="add-btn" (click)="addThreshold('swim')">+ Добавить порог</button>
+                  </div>
+                }
               </div>
             </div>
-
-            <!-- Riding Distance -->
-            <div class="distance-category">
-              <div class="category-header">
-                <div class="category-info">
-                  <span class="category-icon">🚗</span>
-                  <span class="category-name">Транспорт</span>
-                </div>
-                <label class="toggle-switch small">
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="localSettings.distancePoints!.ride.enabled"
-                    (change)="onSettingsChange()"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div *ngIf="localSettings.distancePoints && localSettings.distancePoints.ride && localSettings.distancePoints.ride.enabled" class="threshold-settings">
-                <div *ngFor="let threshold of localSettings.distancePoints!.ride.thresholds; let i = index; trackBy: trackByIndex" class="threshold-row">
-                  <div class="threshold-inputs">
-                    <div class="input-with-label">
-                      <label>Дистанция (м)</label>
-                      <input
-                        type="number"
-                        [(ngModel)]="threshold.distance"
-                        (change)="onSettingsChange()"
-                        class="number-input small"
-                        min="0"
-                        step="100"
-                        placeholder="2000"
-                      />
-                    </div>
-                    <div class="input-with-label">
-                      <label>Очки</label>
-                      <input
-                        type="number"
-                        [(ngModel)]="threshold.points"
-                        (change)="onSettingsChange()"
-                        class="number-input small"
-                        min="0"
-                        step="0.1"
-                        placeholder="0.5"
-                      />
-                    </div>
-                  </div>
-                  <button type="button" class="remove-btn" (click)="removeThreshold('ride', i)" title="Удалить порог">✕</button>
-                </div>
-                <button type="button" class="add-btn" (click)="addThreshold('ride')">+ Добавить порог</button>
-              </div>
+          }
+          @if (!localSettings.distancePoints?.enabled) {
+            <div class="block-content disabled-state">
+              <p class="disabled-message">Очки за дистанции отключены</p>
             </div>
-
-            <!-- Swimming Distance -->
-            <div class="distance-category">
-              <div class="category-header">
-                <div class="category-info">
-                  <span class="category-icon">🏊</span>
-                  <span class="category-name">Плавание</span>
-                </div>
-                <label class="toggle-switch small">
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="localSettings.distancePoints!.swim.enabled"
-                    (change)="onSettingsChange()"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div *ngIf="localSettings.distancePoints && localSettings.distancePoints.swim && localSettings.distancePoints.swim.enabled" class="threshold-settings">
-                <div *ngFor="let threshold of localSettings.distancePoints!.swim.thresholds; let i = index; trackBy: trackByIndex" class="threshold-row">
-                  <div class="threshold-inputs">
-                    <div class="input-with-label">
-                      <label>Дистанция (м)</label>
-                      <input
-                        type="number"
-                        [(ngModel)]="threshold.distance"
-                        (change)="onSettingsChange()"
-                        class="number-input small"
-                        min="0"
-                        step="50"
-                        placeholder="500"
-                      />
-                    </div>
-                    <div class="input-with-label">
-                      <label>Очки</label>
-                      <input
-                        type="number"
-                        [(ngModel)]="threshold.points"
-                        (change)="onSettingsChange()"
-                        class="number-input small"
-                        min="0"
-                        step="0.1"
-                        placeholder="0.2"
-                      />
-                    </div>
-                  </div>
-                  <button type="button" class="remove-btn" (click)="removeThreshold('swim', i)" title="Удалить порог">✕</button>
-                </div>
-                <button type="button" class="add-btn" (click)="addThreshold('swim')">+ Добавить порог</button>
-              </div>
-            </div>
-          </div>
-          <div class="block-content disabled-state" *ngIf="!localSettings.distancePoints?.enabled">
-            <p class="disabled-message">Очки за дистанции отключены</p>
-          </div>
+          }
         </div>
-
+    
         <!-- Presets Block -->
         <div class="settings-block presets-settings">
           <div class="block-header">
@@ -373,7 +396,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                 type="button"
                 class="preset-card"
                 (click)="applyPreset('default')"
-              >
+                >
                 <div class="preset-icon">⚡</div>
                 <div class="preset-info">
                   <h5>По умолчанию</h5>
@@ -384,7 +407,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                 type="button"
                 class="preset-card"
                 (click)="applyPreset('esports')"
-              >
+                >
                 <div class="preset-icon">🏆</div>
                 <div class="preset-info">
                   <h5>Киберспорт</h5>
@@ -395,7 +418,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                 type="button"
                 class="preset-card"
                 (click)="applyPreset('casual')"
-              >
+                >
                 <div class="preset-icon">🎮</div>
                 <div class="preset-info">
                   <h5>Любительская</h5>
@@ -406,7 +429,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                 type="button"
                 class="preset-card experimental"
                 (click)="applyPreset('experimental')"
-              >
+                >
                 <div class="preset-icon">🔬</div>
                 <div class="preset-info">
                   <h5>Экспериментальная</h5>
@@ -416,7 +439,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
             </div>
           </div>
         </div>
-
+    
         <!-- Example Calculator Block -->
         <div class="settings-block calculator-settings">
           <div class="block-header">
@@ -437,7 +460,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                   class="calc-input"
                   min="0"
                   placeholder="5"
-                />
+                  />
               </div>
               <div class="calc-input-group">
                 <label class="calc-label">Место</label>
@@ -449,7 +472,7 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                   min="1"
                   max="100"
                   placeholder="3"
-                />
+                  />
               </div>
             </div>
             <div class="calculation-result">
@@ -458,19 +481,23 @@ import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, Distance
                 <span class="result-value">{{ calculateExample() }}</span>
               </div>
               <div class="result-formula">
-                <span *ngIf="localSettings.placementScoring.type === 'fixed'">
-                  ({{ exampleKills }} × {{ localSettings.killPoints }}) + {{ getPlacementValue(examplePlace) }} = {{ calculateExample() }}
-                </span>
-                <span *ngIf="localSettings.placementScoring.type === 'multiplier'">
-                  ({{ exampleKills }} × {{ localSettings.killPoints }}) × {{ getPlacementValue(examplePlace) }} = {{ calculateExample() }}
-                </span>
+                @if (localSettings.placementScoring.type === 'fixed') {
+                  <span>
+                    ({{ exampleKills }} × {{ localSettings.killPoints }}) + {{ getPlacementValue(examplePlace) }} = {{ calculateExample() }}
+                  </span>
+                }
+                @if (localSettings.placementScoring.type === 'multiplier') {
+                  <span>
+                    ({{ exampleKills }} × {{ localSettings.killPoints }}) × {{ getPlacementValue(examplePlace) }} = {{ calculateExample() }}
+                  </span>
+                }
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  `,
+    `,
     styles: [`
     .scoring-settings {
       background: #f8f9fa;

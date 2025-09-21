@@ -6,174 +6,188 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
     selector: 'app-tournament-standings',
     imports: [CommonModule],
     template: `
-    <div class="tournament-standings" *ngIf="tournament">
-      <div class="standings-header">
-        <h3>Турнирная таблица</h3>
-        <div class="view-toggle">
-          <button
-            class="toggle-btn"
-            [class.active]="viewMode === 'teams'"
-            (click)="viewMode = 'teams'"
-            *ngIf="tournament.mode === 'squad'"
-          >
-            Команды
-          </button>
-          <button
-            class="toggle-btn"
-            [class.active]="viewMode === 'players'"
-            (click)="viewMode = 'players'"
-          >
-            Игроки
-          </button>
-        </div>
-      </div>
-
-      <!-- Teams View -->
-      <div *ngIf="viewMode === 'teams' && tournament.mode === 'squad'" class="standings-table">
-        <div class="table-header">
-          <div class="pos-col">Место</div>
-          <div class="team-col">Команда</div>
-          <div class="score-col">Очки</div>
-          <div class="matches-col">Матчи</div>
-          <div class="kills-col">Убийства</div>
-          <div class="damage-col">Урон</div>
-          <div class="walk-col">Пешком</div>
-          <div class="ride-col">Транспорт</div>
-          <div class="swim-col">Плавание</div>
-          <div class="avg-pos-col">Ср. место</div>
-        </div>
-
-        <div
-          *ngFor="let team of sortedTeams; let i = index; trackBy: trackByTeamId"
-          class="table-row"
-          [class.excluded]="isTeamExcluded(team)"
-        >
-          <div class="pos-col">
-            <span class="position" [class]="getPositionClass(i + 1)">
-              {{ i + 1 }}
-            </span>
+    @if (tournament) {
+      <div class="tournament-standings">
+        <div class="standings-header">
+          <h3>Турнирная таблица</h3>
+          <div class="view-toggle">
+            @if (tournament.mode === 'squad') {
+              <button
+                class="toggle-btn"
+                [class.active]="viewMode === 'teams'"
+                (click)="viewMode = 'teams'"
+                >
+                Команды
+              </button>
+            }
+            <button
+              class="toggle-btn"
+              [class.active]="viewMode === 'players'"
+              (click)="viewMode = 'players'"
+              >
+              Игроки
+            </button>
           </div>
-          <div class="team-col">
-            <div class="team-info">
-              <span class="team-name">{{ team.name }}</span>
-              <div class="team-players">
-                <span *ngFor="let playerId of team.players; let last = last">
-                  {{ getPlayerName(playerId) }}<span *ngIf="!last">, </span>
+        </div>
+        <!-- Teams View -->
+        @if (viewMode === 'teams' && tournament.mode === 'squad') {
+          <div class="standings-table">
+            <div class="table-header">
+              <div class="pos-col">Место</div>
+              <div class="team-col">Команда</div>
+              <div class="score-col">Очки</div>
+              <div class="matches-col">Матчи</div>
+              <div class="kills-col">Убийства</div>
+              <div class="damage-col">Урон</div>
+              <div class="walk-col">Пешком</div>
+              <div class="ride-col">Транспорт</div>
+              <div class="swim-col">Плавание</div>
+              <div class="avg-pos-col">Ср. место</div>
+            </div>
+            @for (team of sortedTeams; track trackByTeamId(i, team); let i = $index) {
+              <div
+                class="table-row"
+                [class.excluded]="isTeamExcluded(team)"
+                >
+                <div class="pos-col">
+                  <span class="position" [class]="getPositionClass(i + 1)">
+                    {{ i + 1 }}
+                  </span>
+                </div>
+                <div class="team-col">
+                  <div class="team-info">
+                    <span class="team-name">{{ team.name }}</span>
+                    <div class="team-players">
+                      @for (playerId of team.players; track playerId; let last = $last) {
+                        <span>
+                          {{ getPlayerName(playerId) }}@if (!last) {
+                          <span>, </span>
+                        }
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="score-col">
+                <span class="score">{{ team.totalScore }}</span>
+              </div>
+              <div class="matches-col">{{ team.matchCount }}</div>
+              <div class="kills-col">{{ team.totalKills }}</div>
+              <div class="damage-col">{{ team.totalDamage | number:'1.0-0' }}</div>
+              <div class="walk-col">{{ formatDistance(team.totalWalkDistance) }}</div>
+              <div class="ride-col">{{ formatDistance(team.totalRideDistance) }}</div>
+              <div class="swim-col">{{ formatDistance(team.totalSwimDistance) }}</div>
+              <div class="avg-pos-col">{{ team.averagePosition | number:'1.1-1' }}</div>
+            </div>
+          }
+        </div>
+      }
+      <!-- Players View -->
+      @if (viewMode === 'players') {
+        <div class="standings-table">
+          <div class="table-header">
+            <div class="pos-col">Место</div>
+            <div class="player-col">Игрок</div>
+            @if (tournament.mode === 'squad') {
+              <div class="team-col">Команда</div>
+            }
+            <div class="score-col">Очки</div>
+            <div class="matches-col">Матчи</div>
+            <div class="kills-col">Убийства</div>
+            <div class="damage-col">Урон</div>
+            <div class="walk-col">Пешком</div>
+            <div class="ride-col">Транспорт</div>
+            <div class="swim-col">Плавание</div>
+            <div class="avg-pos-col">Ср. место</div>
+          </div>
+          @for (player of sortedPlayers; track trackByPlayerId(i, player); let i = $index) {
+            <div
+              class="table-row"
+              [class.excluded]="player.excluded"
+              >
+              <div class="pos-col">
+                <span class="position" [class]="getPositionClass(i + 1)">
+                  {{ i + 1 }}
                 </span>
               </div>
+              <div class="player-col">
+                <span class="player-name">{{ player.name }}</span>
+              </div>
+              @if (tournament.mode === 'squad') {
+                <div class="team-col">
+                  <span class="team-tag">{{ getTeamName(player.teamId) }}</span>
+                </div>
+              }
+              <div class="score-col">
+                <span class="score">{{ player.totalScore }}</span>
+              </div>
+              <div class="matches-col">{{ player.matchCount }}</div>
+              <div class="kills-col">{{ player.totalKills }}</div>
+              <div class="damage-col">{{ player.totalDamage | number:'1.0-0' }}</div>
+              <div class="walk-col">{{ formatDistance(player.totalWalkDistance) }}</div>
+              <div class="ride-col">{{ formatDistance(player.totalRideDistance) }}</div>
+              <div class="swim-col">{{ formatDistance(player.totalSwimDistance) }}</div>
+              <div class="avg-pos-col">{{ player.averagePosition | number:'1.1-1' }}</div>
             </div>
-          </div>
-          <div class="score-col">
-            <span class="score">{{ team.totalScore }}</span>
-          </div>
-          <div class="matches-col">{{ team.matchCount }}</div>
-          <div class="kills-col">{{ team.totalKills }}</div>
-          <div class="damage-col">{{ team.totalDamage | number:'1.0-0' }}</div>
-          <div class="walk-col">{{ formatDistance(team.totalWalkDistance) }}</div>
-          <div class="ride-col">{{ formatDistance(team.totalRideDistance) }}</div>
-          <div class="swim-col">{{ formatDistance(team.totalSwimDistance) }}</div>
-          <div class="avg-pos-col">{{ team.averagePosition | number:'1.1-1' }}</div>
+          }
         </div>
-      </div>
-
-      <!-- Players View -->
-      <div *ngIf="viewMode === 'players'" class="standings-table">
-        <div class="table-header">
-          <div class="pos-col">Место</div>
-          <div class="player-col">Игрок</div>
-          <div class="team-col" *ngIf="tournament.mode === 'squad'">Команда</div>
-          <div class="score-col">Очки</div>
-          <div class="matches-col">Матчи</div>
-          <div class="kills-col">Убийства</div>
-          <div class="damage-col">Урон</div>
-          <div class="walk-col">Пешком</div>
-          <div class="ride-col">Транспорт</div>
-          <div class="swim-col">Плавание</div>
-          <div class="avg-pos-col">Ср. место</div>
-        </div>
-
-        <div
-          *ngFor="let player of sortedPlayers; let i = index; trackBy: trackByPlayerId"
-          class="table-row"
-          [class.excluded]="player.excluded"
-        >
-          <div class="pos-col">
-            <span class="position" [class]="getPositionClass(i + 1)">
-              {{ i + 1 }}
-            </span>
-          </div>
-          <div class="player-col">
-            <span class="player-name">{{ player.name }}</span>
-          </div>
-          <div class="team-col" *ngIf="tournament.mode === 'squad'">
-            <span class="team-tag">{{ getTeamName(player.teamId) }}</span>
-          </div>
-          <div class="score-col">
-            <span class="score">{{ player.totalScore }}</span>
-          </div>
-          <div class="matches-col">{{ player.matchCount }}</div>
-          <div class="kills-col">{{ player.totalKills }}</div>
-          <div class="damage-col">{{ player.totalDamage | number:'1.0-0' }}</div>
-          <div class="walk-col">{{ formatDistance(player.totalWalkDistance) }}</div>
-          <div class="ride-col">{{ formatDistance(player.totalRideDistance) }}</div>
-          <div class="swim-col">{{ formatDistance(player.totalSwimDistance) }}</div>
-          <div class="avg-pos-col">{{ player.averagePosition | number:'1.1-1' }}</div>
-        </div>
-      </div>
-
+      }
       <!-- Match Details -->
       <div class="matches-section">
         <h4>Матчи турнира</h4>
-        <div
-          *ngFor="let match of tournament.matches; let i = index"
-          class="match-card"
-        >
-          <div class="match-header" (click)="toggleMatchDetails(i)">
-            <div class="match-info">
-              <span class="match-number">Матч {{ i + 1 }}</span>
-              <span class="match-map">{{ match.matchData.mapName }}</span>
-              <span class="match-mode">{{ match.matchData.gameMode }}</span>
-              <span class="match-date">{{ formatDate(match.matchData.playedAt) }}</span>
-            </div>
-            <button class="expand-btn" [class.expanded]="expandedMatches.has(i)">
-              {{ expandedMatches.has(i) ? '▼' : '▶' }}
-            </button>
-          </div>
-
-          <div *ngIf="expandedMatches.has(i)" class="match-details">
-            <div class="participants-table">
-              <div class="participants-header">
-                <div class="participant-pos">Место</div>
-                <div class="participant-name">Игрок</div>
-                <div class="participant-kills">Убийства</div>
-                <div class="participant-damage">Урон</div>
-                <div class="participant-survival">Выживание</div>
-                <div class="participant-walk">Пешком</div>
-                <div class="participant-ride">Транспорт</div>
-                <div class="participant-swim">Плавание</div>
-                <div class="participant-score">Очки</div>
+        @for (match of tournament.matches; track match; let i = $index) {
+          <div
+            class="match-card"
+            >
+            <div class="match-header" (click)="toggleMatchDetails(i)">
+              <div class="match-info">
+                <span class="match-number">Матч {{ i + 1 }}</span>
+                <span class="match-map">{{ match.matchData.mapName }}</span>
+                <span class="match-mode">{{ match.matchData.gameMode }}</span>
+                <span class="match-date">{{ formatDate(match.matchData.playedAt) }}</span>
               </div>
-
-              <div
-                *ngFor="let participant of getSortedParticipants(match.matchData.participants)"
-                class="participant-row"
-              >
-                <div class="participant-pos">{{ participant.stats.placement }}</div>
-                <div class="participant-name">{{ participant.name }}</div>
-                <div class="participant-kills">{{ participant.stats.kills }}</div>
-                <div class="participant-damage">{{ participant.stats.damage }}</div>
-                <div class="participant-survival">{{ formatDuration(participant.stats.survivalTime) }}</div>
-                <div class="participant-walk">{{ formatDistance(participant.stats.walkDistance) }}</div>
-                <div class="participant-ride">{{ formatDistance(participant.stats.rideDistance) }}</div>
-                <div class="participant-swim">{{ formatDistance(participant.stats.swimDistance) }}</div>
-                <div class="participant-score">{{ calculateParticipantScore(participant) }}</div>
-              </div>
+              <button class="expand-btn" [class.expanded]="expandedMatches.has(i)">
+                {{ expandedMatches.has(i) ? '▼' : '▶' }}
+              </button>
             </div>
+            @if (expandedMatches.has(i)) {
+              <div class="match-details">
+                <div class="participants-table">
+                  <div class="participants-header">
+                    <div class="participant-pos">Место</div>
+                    <div class="participant-name">Игрок</div>
+                    <div class="participant-kills">Убийства</div>
+                    <div class="participant-damage">Урон</div>
+                    <div class="participant-survival">Выживание</div>
+                    <div class="participant-walk">Пешком</div>
+                    <div class="participant-ride">Транспорт</div>
+                    <div class="participant-swim">Плавание</div>
+                    <div class="participant-score">Очки</div>
+                  </div>
+                  @for (participant of getSortedParticipants(match.matchData.participants); track participant) {
+                    <div
+                      class="participant-row"
+                      >
+                      <div class="participant-pos">{{ participant.stats.placement }}</div>
+                      <div class="participant-name">{{ participant.name }}</div>
+                      <div class="participant-kills">{{ participant.stats.kills }}</div>
+                      <div class="participant-damage">{{ participant.stats.damage }}</div>
+                      <div class="participant-survival">{{ formatDuration(participant.stats.survivalTime) }}</div>
+                      <div class="participant-walk">{{ formatDistance(participant.stats.walkDistance) }}</div>
+                      <div class="participant-ride">{{ formatDistance(participant.stats.rideDistance) }}</div>
+                      <div class="participant-swim">{{ formatDistance(participant.stats.swimDistance) }}</div>
+                      <div class="participant-score">{{ calculateParticipantScore(participant) }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           </div>
-        </div>
+        }
       </div>
     </div>
-  `,
+    }
+    `,
     styles: [`
     .tournament-standings {
       background: white;

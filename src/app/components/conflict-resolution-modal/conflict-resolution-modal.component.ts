@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, OnChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { TeamConflict, ConflictResolution, Team } from '../../models/tournament.interface';
 
@@ -12,136 +12,137 @@ interface ConflictResolutionForm {
 
 @Component({
     selector: 'app-conflict-resolution-modal',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     template: `
-    <div class="modal-overlay" *ngIf="isVisible" (click)="onOverlayClick($event)">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h2>Разрешение конфликтов команд</h2>
-          <button class="close-btn" (click)="onClose()">&times;</button>
-        </div>
-
-        <div class="modal-body" *ngIf="conflicts.length > 0">
-          <div class="conflicts-intro">
-            <p>
-              Обнаружены игроки, которые играли в разных командах в разных матчах.
-              Выберите действие для каждого игрока:
-            </p>
+    @if (isVisible) {
+      <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2>Разрешение конфликтов команд</h2>
+            <button class="close-btn" (click)="onClose()">&times;</button>
           </div>
-
-          <div class="conflicts-list">
-            <div
-              *ngFor="let conflict of conflicts; trackBy: trackByConflictId"
-              class="conflict-item"
-            >
-              <div class="conflict-header">
-                <h4>{{ conflict.playerName }}</h4>
-                <span class="player-id">ID: {{ conflict.playerId }}</span>
+          @if (conflicts.length > 0) {
+            <div class="modal-body">
+              <div class="conflicts-intro">
+                <p>
+                  Обнаружены игроки, которые играли в разных командах в разных матчах.
+                  Выберите действие для каждого игрока:
+                </p>
               </div>
-
-              <div class="conflict-details">
-                <span class="detail-label">Конфликтующие команды:</span>
-                <div class="teams-list">
-                  <span
-                    *ngFor="let teamId of conflict.conflictingTeams"
-                    class="team-tag"
-                  >
-                    {{ getTeamName(teamId) }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="resolution-options">
-                <div class="option-group">
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      [name]="'action-' + conflict.playerId"
-                      value="assign"
-                      [(ngModel)]="resolutionForm[conflict.playerId].action"
-                      (change)="onActionChange(conflict.playerId)"
-                    />
-                    <span>Закрепить за командой</span>
-                  </label>
-
-                  <select
-                    *ngIf="resolutionForm[conflict.playerId].action === 'assign'"
-                    [(ngModel)]="resolutionForm[conflict.playerId].assignedTeamId"
-                    class="team-select"
-                  >
-                    <option value="">Выберите команду</option>
-                    <option
-                      *ngFor="let teamId of conflict.conflictingTeams"
-                      [value]="teamId"
+              <div class="conflicts-list">
+                @for (conflict of conflicts; track trackByConflictId($index, conflict)) {
+                  <div
+                    class="conflict-item"
                     >
-                      {{ getTeamName(teamId) }}
-                    </option>
-                  </select>
-                </div>
-
-                <div class="option-group">
-                  <label class="radio-option">
-                    <input
-                      type="radio"
-                      [name]="'action-' + conflict.playerId"
-                      value="exclude"
-                      [(ngModel)]="resolutionForm[conflict.playerId].action"
-                      (change)="onActionChange(conflict.playerId)"
-                    />
-                    <span>Исключить из турнира</span>
-                  </label>
+                    <div class="conflict-header">
+                      <h4>{{ conflict.playerName }}</h4>
+                      <span class="player-id">ID: {{ conflict.playerId }}</span>
+                    </div>
+                    <div class="conflict-details">
+                      <span class="detail-label">Конфликтующие команды:</span>
+                      <div class="teams-list">
+                        @for (teamId of conflict.conflictingTeams; track teamId) {
+                          <span
+                            class="team-tag"
+                            >
+                            {{ getTeamName(teamId) }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    <div class="resolution-options">
+                      <div class="option-group">
+                        <label class="radio-option">
+                          <input
+                            type="radio"
+                            [name]="'action-' + conflict.playerId"
+                            value="assign"
+                            [(ngModel)]="resolutionForm[conflict.playerId].action"
+                            (change)="onActionChange(conflict.playerId)"
+                            />
+                          <span>Закрепить за командой</span>
+                        </label>
+                        @if (resolutionForm[conflict.playerId].action === 'assign') {
+                          <select
+                            [(ngModel)]="resolutionForm[conflict.playerId].assignedTeamId"
+                            class="team-select"
+                            >
+                            <option value="">Выберите команду</option>
+                            @for (teamId of conflict.conflictingTeams; track teamId) {
+                              <option
+                                [value]="teamId"
+                                >
+                                {{ getTeamName(teamId) }}
+                              </option>
+                            }
+                          </select>
+                        }
+                      </div>
+                      <div class="option-group">
+                        <label class="radio-option">
+                          <input
+                            type="radio"
+                            [name]="'action-' + conflict.playerId"
+                            value="exclude"
+                            [(ngModel)]="resolutionForm[conflict.playerId].action"
+                            (change)="onActionChange(conflict.playerId)"
+                            />
+                          <span>Исключить из турнира</span>
+                        </label>
+                      </div>
+                    </div>
+                    @if (resolutionForm[conflict.playerId].action === 'exclude') {
+                      <div
+                        class="warning-message"
+                        >
+                        ⚠️ Игрок будет исключен из всех команд и не будет учитываться в подсчете очков
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="bulk-actions">
+                <h4>Массовые действия</h4>
+                <div class="bulk-buttons">
+                  <button
+                    type="button"
+                    class="bulk-btn"
+                    (click)="assignAllToFirstTeam()"
+                    >
+                    Закрепить всех за первой командой
+                  </button>
+                  <button
+                    type="button"
+                    class="bulk-btn"
+                    (click)="excludeAll()"
+                    >
+                    Исключить всех
+                  </button>
                 </div>
               </div>
-
-              <div
-                *ngIf="resolutionForm[conflict.playerId].action === 'exclude'"
-                class="warning-message"
-              >
-                ⚠️ Игрок будет исключен из всех команд и не будет учитываться в подсчете очков
+            </div>
+          }
+          @if (conflicts.length === 0) {
+            <div class="modal-body">
+              <div class="no-conflicts">
+                <p>Конфликтов команд не обнаружено.</p>
               </div>
             </div>
-          </div>
-
-          <div class="bulk-actions">
-            <h4>Массовые действия</h4>
-            <div class="bulk-buttons">
-              <button
-                type="button"
-                class="bulk-btn"
-                (click)="assignAllToFirstTeam()"
+          }
+          <div class="modal-footer">
+            <button class="cancel-btn" (click)="onClose()">Отмена</button>
+            <button
+              class="confirm-btn"
+              [disabled]="!isFormValid()"
+              (click)="onConfirm()"
               >
-                Закрепить всех за первой командой
-              </button>
-              <button
-                type="button"
-                class="bulk-btn"
-                (click)="excludeAll()"
-              >
-                Исключить всех
-              </button>
-            </div>
+              Применить решения
+            </button>
           </div>
-        </div>
-
-        <div class="modal-body" *ngIf="conflicts.length === 0">
-          <div class="no-conflicts">
-            <p>Конфликтов команд не обнаружено.</p>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="cancel-btn" (click)="onClose()">Отмена</button>
-          <button
-            class="confirm-btn"
-            [disabled]="!isFormValid()"
-            (click)="onConfirm()"
-          >
-            Применить решения
-          </button>
         </div>
       </div>
-    </div>
-  `,
+    }
+    `,
     styles: [`
     .modal-overlay {
       position: fixed;

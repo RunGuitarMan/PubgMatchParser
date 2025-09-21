@@ -26,268 +26,285 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
         <h1 class="title">PUBG Tournament Helper</h1>
         <p class="subtitle">Управление турнирами и автоматический подсчет очков</p>
       </header>
-
+    
       <!-- Tournament Section -->
       <div class="tournament-section">
-        <div class="tournament-actions" *ngIf="!currentTournament">
-          <div class="welcome-message">
-            <h2>Добро пожаловать в PUBG Tournament Helper</h2>
-            <p>Создайте турнир для начала работы или настройте API ключ для доступа к реальным данным</p>
-          </div>
-          <div class="action-buttons">
-            <button
-              type="button"
-              (click)="showCreateTournamentModal = true"
-              class="primary-action-btn"
-            >
-              <i class="icon-plus"></i>
-              Создать турнир
-            </button>
-            <button
-              type="button"
-              (click)="showApiKeyModal = true"
-              class="secondary-action-btn"
-            >
-              <i class="icon-key"></i>
-              Настроить API ключ
-            </button>
-          </div>
-        </div>
-
-        <div class="tournament-info" *ngIf="currentTournament">
-          <div class="tournament-header">
-            <div class="tournament-title">
-              <h2>{{ currentTournament.name }}</h2>
-              <span class="tournament-mode">{{ currentTournament.mode === 'solo' ? 'Solo режим' : 'Squad режим' }}</span>
-              <span class="tournament-date">Создан: {{ formatDate(currentTournament.createdAt) }}</span>
+        @if (!currentTournament) {
+          <div class="tournament-actions">
+            <div class="welcome-message">
+              <h2>Добро пожаловать в PUBG Tournament Helper</h2>
+              <p>Создайте турнир для начала работы или настройте API ключ для доступа к реальным данным</p>
             </div>
-            <div class="tournament-actions">
+            <div class="action-buttons">
+              <button
+                type="button"
+                (click)="showCreateTournamentModal = true"
+                class="primary-action-btn"
+                >
+                <i class="icon-plus"></i>
+                Создать турнир
+              </button>
               <button
                 type="button"
                 (click)="showApiKeyModal = true"
-                class="settings-btn"
-                title="Настройки API"
-              >
-                <i class="icon-settings"></i>
-              </button>
-              <button
-                type="button"
-                class="danger-btn"
-                (click)="clearTournament()"
-                title="Очистить турнир"
-              >
-                <i class="icon-trash"></i>
-                Очистить
+                class="secondary-action-btn"
+                >
+                <i class="icon-key"></i>
+                Настроить API ключ
               </button>
             </div>
           </div>
-          <div class="tournament-stats">
-            <div class="stat-card">
-              <div class="stat-value">{{ currentTournament.matches.length }}</div>
-              <div class="stat-label">Матчей</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">{{ teams.length }}</div>
-              <div class="stat-label">Команд</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">{{ players.length }}</div>
-              <div class="stat-label">Игроков</div>
-            </div>
-            <div class="stat-card" *ngIf="conflicts.length > 0">
-              <div class="stat-value warning">{{ conflicts.length }}</div>
-              <div class="stat-label">Конфликтов</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="match-section" *ngIf="currentTournament">
-        <div class="section-header">
-          <h3>Добавить матчи в турнир</h3>
-        </div>
-
-        <div class="match-addition-forms">
-          <!-- Search by Match ID -->
-          <div class="match-form-card">
-            <h4>По Match ID</h4>
-            <div class="horizontal-form">
-              <div class="form-group">
-                <label for="matchId">Match ID</label>
-                <input
-                  id="matchId"
-                  [(ngModel)]="matchId"
-                  placeholder="Введите Match ID"
-                  class="form-input"
-                />
+        }
+    
+        @if (currentTournament) {
+          <div class="tournament-info">
+            <div class="tournament-header">
+              <div class="tournament-title">
+                <h2>{{ currentTournament.name }}</h2>
+                <span class="tournament-mode">{{ currentTournament.mode === 'solo' ? 'Solo режим' : 'Squad режим' }}</span>
+                <span class="tournament-date">Создан: {{ formatDate(currentTournament.createdAt) }}</span>
               </div>
-              <div class="form-group">
-                <label for="shard">Платформа</label>
-                <input
-                  id="shard"
-                  value="Steam"
-                  readonly
-                  class="form-input readonly"
-                  title="Поддерживается только Steam платформа"
-                />
-              </div>
-              <div class="form-actions">
+              <div class="tournament-actions">
                 <button
                   type="button"
-                  [disabled]="!matchId || loading"
-                  (click)="addMatchById()"
-                  class="action-btn primary"
-                >
-                  <span *ngIf="!loading">Добавить</span>
-                  <span *ngIf="loading">
-                    <i class="icon-loading"></i>
-                    Загрузка...
-                  </span>
+                  (click)="showApiKeyModal = true"
+                  class="settings-btn"
+                  title="Настройки API"
+                  >
+                  <i class="icon-settings"></i>
+                </button>
+                <button
+                  type="button"
+                  class="danger-btn"
+                  (click)="clearTournament()"
+                  title="Очистить турнир"
+                  >
+                  <i class="icon-trash"></i>
+                  Очистить
                 </button>
               </div>
             </div>
-          </div>
-
-          <!-- Search by Player -->
-          <div class="match-form-card">
-            <h4>По игроку</h4>
-            <div class="horizontal-form">
-              <div class="form-group">
-                <label for="playerName">Никнейм игрока</label>
-                <input
-                  id="playerName"
-                  [(ngModel)]="playerName"
-                  placeholder="Введите никнейм игрока"
-                  class="form-input"
-                />
+            <div class="tournament-stats">
+              <div class="stat-card">
+                <div class="stat-value">{{ currentTournament.matches.length }}</div>
+                <div class="stat-label">Матчей</div>
               </div>
-              <div class="form-actions">
-                <button
-                  type="button"
-                  [disabled]="!playerName || loadingPlayer"
-                  (click)="searchPlayerMatches()"
-                  class="action-btn secondary"
-                >
-                  <span *ngIf="!loadingPlayer">Найти матчи</span>
-                  <span *ngIf="loadingPlayer">
-                    <i class="icon-loading"></i>
-                    Поиск...
-                  </span>
-                </button>
+              <div class="stat-card">
+                <div class="stat-value">{{ teams.length }}</div>
+                <div class="stat-label">Команд</div>
               </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ players.length }}</div>
+                <div class="stat-label">Игроков</div>
+              </div>
+              @if (conflicts.length > 0) {
+                <div class="stat-card">
+                  <div class="stat-value warning">{{ conflicts.length }}</div>
+                  <div class="stat-label">Конфликтов</div>
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
       </div>
-
-      <div *ngIf="errorMessage" class="error-message">
-        <div class="error-tag">
-          {{ errorMessage }}
-        </div>
-      </div>
-
-      <div *ngIf="matchData" class="match-results">
-        <div class="match-info-card card">
-          <h2>Информация о матче</h2>
-          <div class="match-details">
-            <div class="detail-item">
-              <span class="label">ID матча:</span>
-              <span class="value">{{ matchData.id }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Режим игры:</span>
-              <span class="tag tag-primary">{{ matchData.gameMode }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Карта:</span>
-              <span class="tag tag-success">{{ matchData.mapName }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Дата:</span>
-              <span class="value">{{ formatDate(matchData.playedAt) }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">Длительность:</span>
-              <span class="value">{{ formatDuration(matchData.duration) }}</span>
-            </div>
+    
+      @if (currentTournament) {
+        <div class="match-section">
+          <div class="section-header">
+            <h3>Добавить матчи в турнир</h3>
           </div>
-        </div>
-
-        <div class="participants-card card">
-          <h2>Участники ({{ matchData.participants.length }})</h2>
-          <div class="participants-grid">
-            <div
-              *ngFor="let participant of matchData.participants; trackBy: trackByPlayerId"
-              class="participant-card"
-            >
-              <div class="participant-header">
-                <h3 class="player-name">{{ participant.name }}</h3>
-                <span
-                  class="tag"
-                  [ngClass]="'tag-' + getPlacementStatus(participant.stats.placement)"
-                >
-                  #{{ participant.stats.placement }}
-                </span>
-              </div>
-
-              <div class="stats-grid">
-                <div class="stat-item">
-                  <span class="stat-label">Убийства</span>
-                  <span class="stat-value">{{ participant.stats.kills }}</span>
+          <div class="match-addition-forms">
+            <!-- Search by Match ID -->
+            <div class="match-form-card">
+              <h4>По Match ID</h4>
+              <div class="horizontal-form">
+                <div class="form-group">
+                  <label for="matchId">Match ID</label>
+                  <input
+                    id="matchId"
+                    [(ngModel)]="matchId"
+                    placeholder="Введите Match ID"
+                    class="form-input"
+                    />
                 </div>
-                <div class="stat-item">
-                  <span class="stat-label">Урон</span>
-                  <span class="stat-value">{{ participant.stats.damage }}</span>
+                <div class="form-group">
+                  <label for="shard">Платформа</label>
+                  <input
+                    id="shard"
+                    value="Steam"
+                    readonly
+                    class="form-input readonly"
+                    title="Поддерживается только Steam платформа"
+                    />
                 </div>
-                <div class="stat-item">
-                  <span class="stat-label">Время выживания</span>
-                  <span class="stat-value">{{ formatDuration(participant.stats.survivalTime) }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Пройдено пешком</span>
-                  <span class="stat-value">{{ participant.stats.walkDistance }}м</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Проехано</span>
-                  <span class="stat-value">{{ participant.stats.rideDistance }}м</span>
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    [disabled]="!matchId || loading"
+                    (click)="addMatchById()"
+                    class="action-btn primary"
+                    >
+                    @if (!loading) {
+                      <span>Добавить</span>
+                    }
+                    @if (loading) {
+                      <span>
+                        <i class="icon-loading"></i>
+                        Загрузка...
+                      </span>
+                    }
+                  </button>
                 </div>
               </div>
             </div>
+            <!-- Search by Player -->
+            <div class="match-form-card">
+              <h4>По игроку</h4>
+              <div class="horizontal-form">
+                <div class="form-group">
+                  <label for="playerName">Никнейм игрока</label>
+                  <input
+                    id="playerName"
+                    [(ngModel)]="playerName"
+                    placeholder="Введите никнейм игрока"
+                    class="form-input"
+                    />
+                </div>
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    [disabled]="!playerName || loadingPlayer"
+                    (click)="searchPlayerMatches()"
+                    class="action-btn secondary"
+                    >
+                    @if (!loadingPlayer) {
+                      <span>Найти матчи</span>
+                    }
+                    @if (loadingPlayer) {
+                      <span>
+                        <i class="icon-loading"></i>
+                        Поиск...
+                      </span>
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
+      }
+    
+      @if (errorMessage) {
+        <div class="error-message">
+          <div class="error-tag">
+            {{ errorMessage }}
+          </div>
+        </div>
+      }
+    
+      @if (matchData) {
+        <div class="match-results">
+          <div class="match-info-card card">
+            <h2>Информация о матче</h2>
+            <div class="match-details">
+              <div class="detail-item">
+                <span class="label">ID матча:</span>
+                <span class="value">{{ matchData.id }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Режим игры:</span>
+                <span class="tag tag-primary">{{ matchData.gameMode }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Карта:</span>
+                <span class="tag tag-success">{{ matchData.mapName }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Дата:</span>
+                <span class="value">{{ formatDate(matchData.playedAt) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Длительность:</span>
+                <span class="value">{{ formatDuration(matchData.duration) }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="participants-card card">
+            <h2>Участники ({{ matchData.participants.length }})</h2>
+            <div class="participants-grid">
+              @for (participant of matchData.participants; track trackByPlayerId($index, participant)) {
+                <div
+                  class="participant-card"
+                  >
+                  <div class="participant-header">
+                    <h3 class="player-name">{{ participant.name }}</h3>
+                    <span
+                      class="tag"
+                      [ngClass]="'tag-' + getPlacementStatus(participant.stats.placement)"
+                      >
+                      #{{ participant.stats.placement }}
+                    </span>
+                  </div>
+                  <div class="stats-grid">
+                    <div class="stat-item">
+                      <span class="stat-label">Убийства</span>
+                      <span class="stat-value">{{ participant.stats.kills }}</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Урон</span>
+                      <span class="stat-value">{{ participant.stats.damage }}</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Время выживания</span>
+                      <span class="stat-value">{{ formatDuration(participant.stats.survivalTime) }}</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Пройдено пешком</span>
+                      <span class="stat-value">{{ participant.stats.walkDistance }}м</span>
+                    </div>
+                    <div class="stat-item">
+                      <span class="stat-label">Проехано</span>
+                      <span class="stat-value">{{ participant.stats.rideDistance }}м</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    
       <!-- Tournament Content -->
-      <div class="tournament-content" *ngIf="currentTournament">
-        <div class="main-content">
-          <!-- Scoring Settings -->
-          <app-scoring-settings
-            [settings]="currentTournament.scoringSettings"
-            (settingsChange)="onScoringSettingsChange($event)"
-          ></app-scoring-settings>
-
-          <!-- Tournament Standings -->
-          <app-tournament-standings
-            [tournament]="currentTournament"
-            [teams]="teams"
-            [players]="players"
-          ></app-tournament-standings>
-        </div>
-
-        <!-- Export Section -->
-        <div class="export-section">
-          <h3>Экспорт данных</h3>
-          <div class="export-buttons">
-            <button class="export-btn" (click)="exportJson()">
-              Экспорт JSON
-            </button>
-            <button class="export-btn" (click)="exportCsv()">
-              Экспорт CSV
-            </button>
+      @if (currentTournament) {
+        <div class="tournament-content">
+          <div class="main-content">
+            <!-- Scoring Settings -->
+            <app-scoring-settings
+              [settings]="currentTournament.scoringSettings"
+              (settingsChange)="onScoringSettingsChange($event)"
+            ></app-scoring-settings>
+            <!-- Tournament Standings -->
+            <app-tournament-standings
+              [tournament]="currentTournament"
+              [teams]="teams"
+              [players]="players"
+            ></app-tournament-standings>
+          </div>
+          <!-- Export Section -->
+          <div class="export-section">
+            <h3>Экспорт данных</h3>
+            <div class="export-buttons">
+              <button class="export-btn" (click)="exportJson()">
+                Экспорт JSON
+              </button>
+              <button class="export-btn" (click)="exportCsv()">
+                Экспорт CSV
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
+      }
+    
       <!-- Match Selection Modal -->
       <app-match-selection-modal
         [matches]="foundMatches"
@@ -295,7 +312,7 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
         (confirm)="onMatchesSelected($event)"
         (close)="showMatchModal = false"
       ></app-match-selection-modal>
-
+    
       <!-- Conflict Resolution Modal -->
       <app-conflict-resolution-modal
         [conflicts]="conflicts"
@@ -304,107 +321,111 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
         (resolve)="onConflictsResolved($event)"
         (close)="showConflictModal = false"
       ></app-conflict-resolution-modal>
-
+    
       <!-- Create Tournament Modal -->
-      <div class="modal-overlay" *ngIf="showCreateTournamentModal" (click)="showCreateTournamentModal = false">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>Создать новый турнир</h3>
-            <button type="button" class="close-btn" (click)="showCreateTournamentModal = false">
-              <i class="icon-close">✕</i>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="form-section">
-              <h4>Основные настройки</h4>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="modalTournamentName">Название турнира</label>
-                  <input
-                    id="modalTournamentName"
-                    [(ngModel)]="tournamentName"
-                    placeholder="Введите название турнира"
-                    class="form-input"
-                    type="text"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="modalTournamentMode">Режим турнира</label>
-                  <select id="modalTournamentMode" [(ngModel)]="tournamentMode" class="form-select">
-                    <option value="solo">Solo</option>
-                    <option value="squad">Squad</option>
-                  </select>
+      @if (showCreateTournamentModal) {
+        <div class="modal-overlay" (click)="showCreateTournamentModal = false">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Создать новый турнир</h3>
+              <button type="button" class="close-btn" (click)="showCreateTournamentModal = false">
+                <i class="icon-close">✕</i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-section">
+                <h4>Основные настройки</h4>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="modalTournamentName">Название турнира</label>
+                    <input
+                      id="modalTournamentName"
+                      [(ngModel)]="tournamentName"
+                      placeholder="Введите название турнира"
+                      class="form-input"
+                      type="text"
+                      />
+                  </div>
+                  <div class="form-group">
+                    <label for="modalTournamentMode">Режим турнира</label>
+                    <select id="modalTournamentMode" [(ngModel)]="tournamentMode" class="form-select">
+                      <option value="solo">Solo</option>
+                      <option value="squad">Squad</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn secondary" (click)="showCreateTournamentModal = false">
-              Отмена
-            </button>
-            <button
-              type="button"
-              class="btn primary"
-              [disabled]="!tournamentName.trim()"
-              (click)="createTournament(); showCreateTournamentModal = false"
-            >
-              Создать турнир
-            </button>
+            <div class="modal-footer">
+              <button type="button" class="btn secondary" (click)="showCreateTournamentModal = false">
+                Отмена
+              </button>
+              <button
+                type="button"
+                class="btn primary"
+                [disabled]="!tournamentName.trim()"
+                (click)="createTournament(); showCreateTournamentModal = false"
+                >
+                Создать турнир
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
+      }
+    
       <!-- API Key Modal -->
-      <div class="modal-overlay" *ngIf="showApiKeyModal" (click)="showApiKeyModal = false">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-          <div class="modal-header">
-            <h3>Настройки API ключа</h3>
-            <button type="button" class="close-btn" (click)="showApiKeyModal = false">
-              <i class="icon-close">✕</i>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="form-section">
-              <h4>API ключ PUBG</h4>
-              <p class="help-text">Получите API ключ на <a href="https://developer.pubg.com/" target="_blank">developer.pubg.com</a></p>
-              <div class="form-group">
-                <label for="modalApiKey">API ключ</label>
-                <div class="api-key-input-group">
-                  <input
-                    id="modalApiKey"
-                    [(ngModel)]="apiKey"
-                    [type]="showApiKey ? 'text' : 'password'"
-                    placeholder="Введите API ключ"
-                    class="form-input"
-                  />
-                  <button
-                    type="button"
-                    class="visibility-toggle-btn"
-                    (click)="toggleApiKeyVisibility()"
-                    title="Показать/скрыть API ключ"
-                  >
-                    <i class="icon-eye">{{ showApiKey ? '🙈' : '👁️' }}</i>
-                  </button>
+      @if (showApiKeyModal) {
+        <div class="modal-overlay" (click)="showApiKeyModal = false">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+              <h3>Настройки API ключа</h3>
+              <button type="button" class="close-btn" (click)="showApiKeyModal = false">
+                <i class="icon-close">✕</i>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-section">
+                <h4>API ключ PUBG</h4>
+                <p class="help-text">Получите API ключ на <a href="https://developer.pubg.com/" target="_blank">developer.pubg.com</a></p>
+                <div class="form-group">
+                  <label for="modalApiKey">API ключ</label>
+                  <div class="api-key-input-group">
+                    <input
+                      id="modalApiKey"
+                      [(ngModel)]="apiKey"
+                      [type]="showApiKey ? 'text' : 'password'"
+                      placeholder="Введите API ключ"
+                      class="form-input"
+                      />
+                    <button
+                      type="button"
+                      class="visibility-toggle-btn"
+                      (click)="toggleApiKeyVisibility()"
+                      title="Показать/скрыть API ключ"
+                      >
+                      <i class="icon-eye">{{ showApiKey ? '🙈' : '👁️' }}</i>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn secondary" (click)="showApiKeyModal = false">
-              Отмена
-            </button>
-            <button
-              type="button"
-              class="btn primary"
-              (click)="saveApiKey(); showApiKeyModal = false"
-            >
-              Сохранить
-            </button>
+            <div class="modal-footer">
+              <button type="button" class="btn secondary" (click)="showApiKeyModal = false">
+                Отмена
+              </button>
+              <button
+                type="button"
+                class="btn primary"
+                (click)="saveApiKey(); showApiKeyModal = false"
+                >
+                Сохранить
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      }
     </div>
-  `,
+    `,
     styles: [`
     .container {
       max-width: 1200px;
