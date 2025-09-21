@@ -30,140 +30,154 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
 
       <!-- Tournament Section -->
       <div class="tournament-section">
-        <div class="tournament-controls" *ngIf="!currentTournament">
-          <h3>Создать турнир</h3>
-          <div class="tournament-form">
-            <div class="input-group">
-              <label for="tournamentName">Название турнира</label>
-              <input
-                id="tournamentName"
-                [(ngModel)]="tournamentName"
-                placeholder="Введите название турнира"
-                class="tournament-input"
-              />
-            </div>
-            <div class="input-group">
-              <label for="tournamentMode">Режим турнира</label>
-              <select
-                id="tournamentMode"
-                [(ngModel)]="tournamentMode"
-                class="tournament-select"
-              >
-                <option value="solo">Solo</option>
-                <option value="squad">Squad</option>
-              </select>
-            </div>
+        <div class="tournament-actions" *ngIf="!currentTournament">
+          <div class="welcome-message">
+            <h2>Добро пожаловать в PUBG Tournament Helper</h2>
+            <p>Создайте турнир для начала работы или настройте API ключ для доступа к реальным данным</p>
+          </div>
+          <div class="action-buttons">
             <button
               type="button"
-              [disabled]="!tournamentName"
-              (click)="createTournament()"
-              class="create-tournament-btn"
+              (click)="showCreateTournamentModal = true"
+              class="primary-action-btn"
             >
+              <i class="icon-plus"></i>
               Создать турнир
+            </button>
+            <button
+              type="button"
+              (click)="showApiKeyModal = true"
+              class="secondary-action-btn"
+            >
+              <i class="icon-key"></i>
+              Настроить API ключ
             </button>
           </div>
         </div>
 
         <div class="tournament-info" *ngIf="currentTournament">
           <div class="tournament-header">
-            <h3>{{ currentTournament.name }}</h3>
-            <div class="tournament-stats">
-              <span>Матчи: {{ currentTournament.matches.length }}</span>
-              <span>Команды: {{ teams.length }}</span>
-              <span>Игроки: {{ players.length }}</span>
+            <div class="tournament-title">
+              <h2>{{ currentTournament.name }}</h2>
+              <span class="tournament-mode">{{ currentTournament.mode === 'solo' ? 'Solo режим' : 'Squad режим' }}</span>
+              <span class="tournament-date">Создан: {{ formatDate(currentTournament.createdAt) }}</span>
             </div>
-            <button class="clear-tournament-btn" (click)="clearTournament()">
-              Очистить турнир
-            </button>
+            <div class="tournament-actions">
+              <button
+                type="button"
+                (click)="showApiKeyModal = true"
+                class="settings-btn"
+                title="Настройки API"
+              >
+                <i class="icon-settings"></i>
+              </button>
+              <button
+                type="button"
+                class="danger-btn"
+                (click)="clearTournament()"
+                title="Очистить турнир"
+              >
+                <i class="icon-trash"></i>
+                Очистить
+              </button>
+            </div>
+          </div>
+          <div class="tournament-stats">
+            <div class="stat-card">
+              <div class="stat-value">{{ currentTournament.matches.length }}</div>
+              <div class="stat-label">Матчей</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ teams.length }}</div>
+              <div class="stat-label">Команд</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">{{ players.length }}</div>
+              <div class="stat-label">Игроков</div>
+            </div>
+            <div class="stat-card" *ngIf="conflicts.length > 0">
+              <div class="stat-value warning">{{ conflicts.length }}</div>
+              <div class="stat-label">Конфликтов</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="api-key-section">
-        <div class="api-key-form">
-          <div class="input-group">
-            <label for="apiKey">PUBG API Key (опционально)</label>
-            <input
-              id="apiKey"
-              [(ngModel)]="apiKey"
-              [type]="showApiKey ? 'text' : 'password'"
-              placeholder="Введите ваш PUBG API ключ"
-              class="api-key-input"
-            />
-            <small class="help-text">
-              Без API ключа будут показаны демо данные.
-              <a href="https://developer.pubg.com/" target="_blank">Получить ключ</a>
-            </small>
-          </div>
-          <button
-            type="button"
-            (click)="toggleApiKeyVisibility()"
-            class="toggle-visibility-btn"
-          >
-            {{ showApiKey ? 'Скрыть' : 'Показать' }}
-          </button>
-        </div>
-      </div>
-
-      <div class="search-section" *ngIf="currentTournament">
-        <h3>Добавить матчи в турнир</h3>
-
-        <!-- Search by Match ID -->
-        <div class="search-form">
-          <div class="input-group">
-            <label for="matchId">Match ID</label>
-            <input
-              id="matchId"
-              [(ngModel)]="matchId"
-              placeholder="Введите Match ID"
-              class="match-input"
-            />
-          </div>
-
-          <div class="input-group">
-            <label for="shard">Платформа</label>
-            <input
-              id="shard"
-              [(ngModel)]="selectedShard"
-              readonly
-              value="steam"
-              class="shard-select"
-              title="Поддерживается только Steam платформа"
-            />
-          </div>
-
-          <button
-            type="button"
-            [disabled]="!matchId || loading"
-            (click)="addMatchById()"
-            class="parse-button"
-          >
-            <span *ngIf="!loading">Добавить матч</span>
-            <span *ngIf="loading">Загрузка...</span>
-          </button>
+      <div class="match-section" *ngIf="currentTournament">
+        <div class="section-header">
+          <h3>Добавить матчи в турнир</h3>
         </div>
 
-        <!-- Search by Player -->
-        <div class="player-search-form">
-          <div class="input-group">
-            <label for="playerName">Поиск по игроку</label>
-            <input
-              id="playerName"
-              [(ngModel)]="playerName"
-              placeholder="Введите никнейм игрока"
-              class="player-input"
-            />
+        <div class="match-addition-forms">
+          <!-- Search by Match ID -->
+          <div class="match-form-card">
+            <h4>По Match ID</h4>
+            <div class="horizontal-form">
+              <div class="form-group">
+                <label for="matchId">Match ID</label>
+                <input
+                  id="matchId"
+                  [(ngModel)]="matchId"
+                  placeholder="Введите Match ID"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-group">
+                <label for="shard">Платформа</label>
+                <input
+                  id="shard"
+                  value="Steam"
+                  readonly
+                  class="form-input readonly"
+                  title="Поддерживается только Steam платформа"
+                />
+              </div>
+              <div class="form-actions">
+                <button
+                  type="button"
+                  [disabled]="!matchId || loading"
+                  (click)="addMatchById()"
+                  class="action-btn primary"
+                >
+                  <span *ngIf="!loading">Добавить</span>
+                  <span *ngIf="loading">
+                    <i class="icon-loading"></i>
+                    Загрузка...
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <button
-            type="button"
-            [disabled]="!playerName || loadingPlayer"
-            (click)="searchPlayerMatches()"
-            class="search-player-btn"
-          >
-            <span *ngIf="!loadingPlayer">Найти матчи</span>
-            <span *ngIf="loadingPlayer">Поиск...</span>
-          </button>
+          <!-- Search by Player -->
+          <div class="match-form-card">
+            <h4>По игроку</h4>
+            <div class="horizontal-form">
+              <div class="form-group">
+                <label for="playerName">Никнейм игрока</label>
+                <input
+                  id="playerName"
+                  [(ngModel)]="playerName"
+                  placeholder="Введите никнейм игрока"
+                  class="form-input"
+                />
+              </div>
+              <div class="form-actions">
+                <button
+                  type="button"
+                  [disabled]="!playerName || loadingPlayer"
+                  (click)="searchPlayerMatches()"
+                  class="action-btn secondary"
+                >
+                  <span *ngIf="!loadingPlayer">Найти матчи</span>
+                  <span *ngIf="loadingPlayer">
+                    <i class="icon-loading"></i>
+                    Поиск...
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -291,6 +305,105 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
         (resolve)="onConflictsResolved($event)"
         (close)="showConflictModal = false"
       ></app-conflict-resolution-modal>
+
+      <!-- Create Tournament Modal -->
+      <div class="modal-overlay" *ngIf="showCreateTournamentModal" (click)="showCreateTournamentModal = false">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Создать новый турнир</h3>
+            <button type="button" class="close-btn" (click)="showCreateTournamentModal = false">
+              <i class="icon-close">✕</i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-section">
+              <h4>Основные настройки</h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="modalTournamentName">Название турнира</label>
+                  <input
+                    id="modalTournamentName"
+                    [(ngModel)]="tournamentName"
+                    placeholder="Введите название турнира"
+                    class="form-input"
+                    type="text"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="modalTournamentMode">Режим турнира</label>
+                  <select id="modalTournamentMode" [(ngModel)]="tournamentMode" class="form-select">
+                    <option value="solo">Solo</option>
+                    <option value="squad">Squad</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn secondary" (click)="showCreateTournamentModal = false">
+              Отмена
+            </button>
+            <button
+              type="button"
+              class="btn primary"
+              [disabled]="!tournamentName.trim()"
+              (click)="createTournament(); showCreateTournamentModal = false"
+            >
+              Создать турнир
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Key Modal -->
+      <div class="modal-overlay" *ngIf="showApiKeyModal" (click)="showApiKeyModal = false">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3>Настройки API ключа</h3>
+            <button type="button" class="close-btn" (click)="showApiKeyModal = false">
+              <i class="icon-close">✕</i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-section">
+              <h4>API ключ PUBG</h4>
+              <p class="help-text">Получите API ключ на <a href="https://developer.pubg.com/" target="_blank">developer.pubg.com</a></p>
+              <div class="form-group">
+                <label for="modalApiKey">API ключ</label>
+                <div class="api-key-input-group">
+                  <input
+                    id="modalApiKey"
+                    [(ngModel)]="apiKey"
+                    [type]="showApiKey ? 'text' : 'password'"
+                    placeholder="Введите API ключ"
+                    class="form-input"
+                  />
+                  <button
+                    type="button"
+                    class="visibility-toggle-btn"
+                    (click)="toggleApiKeyVisibility()"
+                    title="Показать/скрыть API ключ"
+                  >
+                    <i class="icon-eye">{{ showApiKey ? '🙈' : '👁️' }}</i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn secondary" (click)="showApiKeyModal = false">
+              Отмена
+            </button>
+            <button
+              type="button"
+              class="btn primary"
+              (click)="saveApiKey(); showApiKeyModal = false"
+            >
+              Сохранить
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -746,6 +859,509 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
         grid-template-columns: 1fr;
       }
     }
+
+    /* Tournament Actions Styles */
+    .tournament-actions {
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+
+    .welcome-message {
+      margin-bottom: 2rem;
+    }
+
+    .welcome-message h2 {
+      margin: 0 0 1rem 0;
+      color: #333;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    .welcome-message p {
+      margin: 0;
+      color: #666;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .primary-action-btn, .secondary-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 180px;
+      justify-content: center;
+    }
+
+    .primary-action-btn {
+      background: #28a745;
+      color: white;
+    }
+
+    .primary-action-btn:hover {
+      background: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .secondary-action-btn {
+      background: #6c757d;
+      color: white;
+    }
+
+    .secondary-action-btn:hover {
+      background: #545b62;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+
+    /* Tournament Info Enhanced Styles */
+    .tournament-info {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .tournament-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .tournament-title h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    .tournament-mode {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-right: 1rem;
+    }
+
+    .tournament-date {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+    }
+
+    .tournament-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .settings-btn, .danger-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .settings-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .settings-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .danger-btn {
+      background: #dc3545;
+      color: white;
+    }
+
+    .danger-btn:hover {
+      background: #c82333;
+    }
+
+    .tournament-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      line-height: 1;
+    }
+
+    .stat-value.warning {
+      color: #ffc107;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    /* Match Section Enhanced Styles */
+    .match-section {
+      margin-bottom: 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header h3 {
+      margin: 0;
+      color: #333;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .match-addition-forms {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .match-form-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .match-form-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .match-form-card h4 {
+      margin: 0 0 1rem 0;
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .horizontal-form {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .form-input, .form-select {
+      padding: 0.75rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .form-input.readonly {
+      background-color: #f8f9fa;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .form-actions {
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .action-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 120px;
+      height: fit-content;
+    }
+
+    .action-btn.primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .action-btn.primary:hover:not(:disabled) {
+      background: #0056b3;
+      transform: translateY(-1px);
+    }
+
+    .action-btn.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .action-btn.secondary:hover:not(:disabled) {
+      background: #545b62;
+      transform: translateY(-1px);
+    }
+
+    .action-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: modalFadeIn 0.2s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 1.5rem 0 1.5rem;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: #333;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #666;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .modal-body {
+      padding: 0 1.5rem 1.5rem 1.5rem;
+    }
+
+    .form-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-section h4 {
+      margin: 0 0 1rem 0;
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .api-key-input-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .api-key-input-group .form-input {
+      flex: 1;
+    }
+
+    .visibility-toggle-btn {
+      padding: 0.75rem;
+      background: #f8f9fa;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 50px;
+    }
+
+    .visibility-toggle-btn:hover {
+      background: #e9ecef;
+      border-color: #d0d7de;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      padding: 1rem 1.5rem 1.5rem 1.5rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 100px;
+    }
+
+    .btn.primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn.primary:hover:not(:disabled) {
+      background: #0056b3;
+    }
+
+    .btn.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn.secondary:hover {
+      background: #545b62;
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Enhanced Responsive Design */
+    @media (max-width: 768px) {
+      .tournament-actions {
+        padding: 2rem 1rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .primary-action-btn, .secondary-action-btn {
+        min-width: 250px;
+      }
+
+      .tournament-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .tournament-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .match-addition-forms {
+        grid-template-columns: 1fr;
+      }
+
+      .horizontal-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .form-group {
+        min-width: unset;
+      }
+
+      .modal-content {
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+      }
+    }
   `]
 })
 export class AppComponent implements OnInit {
@@ -775,6 +1391,8 @@ export class AppComponent implements OnInit {
   // UI states
   showMatchModal = false;
   showConflictModal = false;
+  showCreateTournamentModal = false;
+  showApiKeyModal = false;
   foundMatches: PubgMatch[] = [];
   matchData: PubgMatch | null = null;
   errorMessage = '';
@@ -830,7 +1448,7 @@ export class AppComponent implements OnInit {
     this.apiKey = this.storageService.loadApiKey();
   }
 
-  private saveApiKey(): void {
+  saveApiKey(): void {
     this.storageService.saveApiKey(this.apiKey);
   }
 
