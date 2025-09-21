@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ScoringSettings, PlacementScoring, ScoringMode } from '../../models/tournament.interface';
+import { ScoringSettings, PlacementScoring, ScoringMode, DamageScoring, DistanceScoring } from '../../models/tournament.interface';
 
 @Component({
   selector: 'app-scoring-settings',
@@ -105,6 +105,189 @@ import { ScoringSettings, PlacementScoring, ScoringMode } from '../../models/tou
         </div>
       </div>
 
+      <!-- Damage Points Settings -->
+      <div class="setting-group">
+        <label class="setting-label">Настройки очков за урон</label>
+        <div class="checkbox-setting">
+          <label class="checkbox-option">
+            <input
+              type="checkbox"
+              [(ngModel)]="localSettings.damagePoints!.enabled"
+              (change)="onSettingsChange()"
+            />
+            <span>Включить очки за урон</span>
+          </label>
+        </div>
+        <div *ngIf="localSettings.damagePoints?.enabled" class="sub-settings">
+          <div class="input-group">
+            <label class="input-label">Очков за урон:</label>
+            <input
+              type="number"
+              [(ngModel)]="localSettings.damagePoints!.pointsPerDamage"
+              (change)="onSettingsChange()"
+              class="number-input small"
+              min="0"
+              step="0.1"
+            />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Урона за 1 очко:</label>
+            <input
+              type="number"
+              [(ngModel)]="localSettings.damagePoints!.damageThreshold"
+              (change)="onSettingsChange()"
+              class="number-input small"
+              min="1"
+              step="1"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Distance Points Settings -->
+      <div class="setting-group">
+        <label class="setting-label">Настройки очков за дистанции</label>
+        <div class="checkbox-setting">
+          <label class="checkbox-option">
+            <input
+              type="checkbox"
+              [(ngModel)]="localSettings.distancePoints!.enabled"
+              (change)="onSettingsChange()"
+            />
+            <span>Включить очки за дистанции</span>
+          </label>
+        </div>
+        <div *ngIf="localSettings.distancePoints?.enabled" class="sub-settings">
+
+          <!-- Walking Distance -->
+          <div class="distance-category">
+            <div class="checkbox-setting">
+              <label class="checkbox-option">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="localSettings.distancePoints!.walk.enabled"
+                  (change)="onSettingsChange()"
+                />
+                <span>Пешком</span>
+              </label>
+            </div>
+            <div *ngIf="localSettings.distancePoints && localSettings.distancePoints.walk.enabled" class="threshold-settings">
+              <div *ngFor="let threshold of localSettings.distancePoints!.walk.thresholds; let i = index; trackBy: trackByIndex" class="threshold-row">
+                <div class="input-group">
+                  <label class="input-label">Дистанция (м):</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="threshold.distance"
+                    (change)="onSettingsChange()"
+                    class="number-input small"
+                    min="0"
+                    step="100"
+                  />
+                </div>
+                <div class="input-group">
+                  <label class="input-label">Очки:</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="threshold.points"
+                    (change)="onSettingsChange()"
+                    class="number-input small"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <button type="button" class="remove-btn" (click)="removeThreshold('walk', i)">✕</button>
+              </div>
+              <button type="button" class="add-btn" (click)="addThreshold('walk')">+ Добавить порог</button>
+            </div>
+          </div>
+
+          <!-- Riding Distance -->
+          <div class="distance-category">
+            <div class="checkbox-setting">
+              <label class="checkbox-option">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="localSettings.distancePoints!.ride.enabled"
+                  (change)="onSettingsChange()"
+                />
+                <span>Транспорт</span>
+              </label>
+            </div>
+            <div *ngIf="localSettings.distancePoints && localSettings.distancePoints.ride.enabled" class="threshold-settings">
+              <div *ngFor="let threshold of localSettings.distancePoints!.ride.thresholds; let i = index; trackBy: trackByIndex" class="threshold-row">
+                <div class="input-group">
+                  <label class="input-label">Дистанция (м):</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="threshold.distance"
+                    (change)="onSettingsChange()"
+                    class="number-input small"
+                    min="0"
+                    step="100"
+                  />
+                </div>
+                <div class="input-group">
+                  <label class="input-label">Очки:</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="threshold.points"
+                    (change)="onSettingsChange()"
+                    class="number-input small"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <button type="button" class="remove-btn" (click)="removeThreshold('ride', i)">✕</button>
+              </div>
+              <button type="button" class="add-btn" (click)="addThreshold('ride')">+ Добавить порог</button>
+            </div>
+          </div>
+
+          <!-- Swimming Distance -->
+          <div class="distance-category">
+            <div class="checkbox-setting">
+              <label class="checkbox-option">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="localSettings.distancePoints!.swim.enabled"
+                  (change)="onSettingsChange()"
+                />
+                <span>Плавание</span>
+              </label>
+            </div>
+            <div *ngIf="localSettings.distancePoints && localSettings.distancePoints.swim.enabled" class="threshold-settings">
+              <div *ngFor="let threshold of localSettings.distancePoints!.swim.thresholds; let i = index; trackBy: trackByIndex" class="threshold-row">
+                <div class="input-group">
+                  <label class="input-label">Дистанция (м):</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="threshold.distance"
+                    (change)="onSettingsChange()"
+                    class="number-input small"
+                    min="0"
+                    step="50"
+                  />
+                </div>
+                <div class="input-group">
+                  <label class="input-label">Очки:</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="threshold.points"
+                    (change)="onSettingsChange()"
+                    class="number-input small"
+                    min="0"
+                    step="0.1"
+                  />
+                </div>
+                <button type="button" class="remove-btn" (click)="removeThreshold('swim', i)">✕</button>
+              </div>
+              <button type="button" class="add-btn" (click)="addThreshold('swim')">+ Добавить порог</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Preset Buttons -->
       <div class="setting-group">
         <label class="setting-label">Готовые схемы</label>
@@ -129,6 +312,13 @@ import { ScoringSettings, PlacementScoring, ScoringMode } from '../../models/tou
             (click)="applyPreset('casual')"
           >
             Любительская
+          </button>
+          <button
+            type="button"
+            class="preset-btn experimental"
+            (click)="applyPreset('experimental')"
+          >
+            Экспериментальная
           </button>
         </div>
       </div>
@@ -271,6 +461,18 @@ import { ScoringSettings, PlacementScoring, ScoringMode } from '../../models/tou
       background: #545b62;
     }
 
+    .preset-btn.experimental {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      border: 2px solid #667eea;
+    }
+
+    .preset-btn.experimental:hover {
+      background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+      border-color: #5a6fd8;
+    }
+
     .example-calc {
       background: #f8f9fa;
       padding: 1rem;
@@ -315,6 +517,109 @@ import { ScoringSettings, PlacementScoring, ScoringMode } from '../../models/tou
       color: #666;
       margin-top: 0.5rem;
       font-style: italic;
+    }
+
+    /* New styles for damage and distance settings */
+    .checkbox-setting {
+      margin-bottom: 1rem;
+    }
+
+    .checkbox-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .checkbox-option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #007bff;
+    }
+
+    .sub-settings {
+      margin-left: 1.5rem;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border-left: 3px solid #007bff;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .input-label {
+      min-width: 140px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .number-input.small {
+      width: 100px;
+      padding: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .distance-category {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .threshold-settings {
+      margin-top: 1rem;
+    }
+
+    .threshold-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+      padding: 0.75rem;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border: 1px solid #e9ecef;
+    }
+
+    .add-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s ease;
+    }
+
+    .add-btn:hover {
+      background: #218838;
+    }
+
+    .remove-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      min-width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    .remove-btn:hover {
+      background: #c82333;
     }
 
     @media (max-width: 600px) {
@@ -375,6 +680,17 @@ export class ScoringSettingsComponent implements OnInit, OnChanges {
               1: 15, 2: 12, 3: 10, 4: 8, 5: 6, 6: 4, 7: 2, 8: 1,
               9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0
             }
+          },
+          damagePoints: {
+            enabled: false,
+            pointsPerDamage: 0,
+            damageThreshold: 100
+          },
+          distancePoints: {
+            enabled: false,
+            walk: { enabled: false, thresholds: [] },
+            ride: { enabled: false, thresholds: [] },
+            swim: { enabled: false, thresholds: [] }
           }
         };
         break;
@@ -387,6 +703,58 @@ export class ScoringSettingsComponent implements OnInit, OnChanges {
             values: {
               1: 3, 2: 2.5, 3: 2, 4: 1.8, 5: 1.6, 6: 1.4, 7: 1.2, 8: 1.1,
               9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 1
+            }
+          },
+          damagePoints: {
+            enabled: false,
+            pointsPerDamage: 0,
+            damageThreshold: 100
+          },
+          distancePoints: {
+            enabled: false,
+            walk: { enabled: false, thresholds: [] },
+            ride: { enabled: false, thresholds: [] },
+            swim: { enabled: false, thresholds: [] }
+          }
+        };
+        break;
+      case 'experimental':
+        this.localSettings = {
+          mode: 'team',
+          killPoints: 1,
+          placementScoring: {
+            type: 'fixed',
+            values: {
+              1: 13, 2: 11, 3: 9, 4: 8, 5: 6, 6: 4, 7: 2, 8: 1
+            }
+          },
+          damagePoints: {
+            enabled: true,
+            pointsPerDamage: 1,
+            damageThreshold: 100
+          },
+          distancePoints: {
+            enabled: true,
+            walk: {
+              enabled: true,
+              thresholds: [
+                { distance: 1500, points: 0.5 },
+                { distance: 3000, points: 1.5 }
+              ]
+            },
+            ride: {
+              enabled: true,
+              thresholds: [
+                { distance: 2000, points: 0.3 },
+                { distance: 5000, points: 1.0 }
+              ]
+            },
+            swim: {
+              enabled: true,
+              thresholds: [
+                { distance: 500, points: 0.2 },
+                { distance: 1000, points: 0.5 }
+              ]
             }
           }
         };
@@ -418,6 +786,26 @@ export class ScoringSettingsComponent implements OnInit, OnChanges {
     return position;
   }
 
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  addThreshold(type: 'walk' | 'ride' | 'swim'): void {
+    if (!this.localSettings.distancePoints) return;
+
+    const thresholds = this.localSettings.distancePoints[type].thresholds;
+    thresholds.push({ distance: 1000, points: 0.5 });
+    this.onSettingsChange();
+  }
+
+  removeThreshold(type: 'walk' | 'ride' | 'swim', index: number): void {
+    if (!this.localSettings.distancePoints) return;
+
+    const thresholds = this.localSettings.distancePoints[type].thresholds;
+    thresholds.splice(index, 1);
+    this.onSettingsChange();
+  }
+
   private getDefaultSettings(): ScoringSettings {
     return {
       mode: 'team',
@@ -427,6 +815,26 @@ export class ScoringSettingsComponent implements OnInit, OnChanges {
         values: {
           1: 13, 2: 11, 3: 9, 4: 8, 5: 6, 6: 4, 7: 2, 8: 1,
           9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0
+        }
+      },
+      damagePoints: {
+        enabled: false,
+        pointsPerDamage: 0,
+        damageThreshold: 100
+      },
+      distancePoints: {
+        enabled: false,
+        walk: {
+          enabled: false,
+          thresholds: []
+        },
+        ride: {
+          enabled: false,
+          thresholds: []
+        },
+        swim: {
+          enabled: false,
+          thresholds: []
         }
       }
     };

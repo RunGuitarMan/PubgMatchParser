@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { PubgMatch, PubgParticipant, PubgApiResponse } from '../models/tournament.interface';
 
@@ -13,7 +13,7 @@ export class PubgMatchService {
 
   constructor(private http: HttpClient) {}
 
-  getMatchById(matchId: string, shard: string = 'pc-eu', apiKey?: string): Observable<PubgMatch | null> {
+  getMatchById(matchId: string, shard: string = 'steam', apiKey?: string): Observable<PubgMatch | null> {
     const key = apiKey || this.API_KEY;
 
     if (!key || key === 'YOUR_PUBG_API_KEY') {
@@ -54,7 +54,8 @@ export class PubgMatchService {
             placement: stats.winPlace || 0,
             survivalTime: Math.round(stats.timeSurvived || 0),
             walkDistance: Math.round(stats.walkDistance || 0),
-            rideDistance: Math.round(stats.rideDistance || 0)
+            rideDistance: Math.round(stats.rideDistance || 0),
+            swimDistance: Math.round(stats.swimDistance || 0)
           }
         });
       }
@@ -87,7 +88,8 @@ export class PubgMatchService {
             placement: 1,
             survivalTime: 1800,
             walkDistance: 2500,
-            rideDistance: 1200
+            rideDistance: 1200,
+            swimDistance: 150
           }
         },
         {
@@ -99,7 +101,8 @@ export class PubgMatchService {
             placement: 2,
             survivalTime: 1750,
             walkDistance: 2100,
-            rideDistance: 800
+            rideDistance: 800,
+            swimDistance: 80
           }
         },
         {
@@ -111,7 +114,8 @@ export class PubgMatchService {
             placement: 15,
             survivalTime: 1200,
             walkDistance: 1800,
-            rideDistance: 600
+            rideDistance: 600,
+            swimDistance: 25
           }
         }
       ]
@@ -120,7 +124,7 @@ export class PubgMatchService {
     return of(mockMatch);
   }
 
-  getPlayerMatches(playerName: string, shard: string = 'pc-eu', apiKey?: string): Observable<string[]> {
+  getPlayerMatches(playerName: string, shard: string = 'steam', apiKey?: string): Observable<string[]> {
     const key = apiKey || this.API_KEY;
 
     if (!key || key === 'YOUR_PUBG_API_KEY') {
@@ -156,11 +160,15 @@ export class PubgMatchService {
     );
   }
 
-  getMatchesByIds(matchIds: string[], shard: string = 'pc-eu', apiKey?: string): Observable<PubgMatch[]> {
+  getMatchesByIds(matchIds: string[], shard: string = 'steam', apiKey?: string): Observable<PubgMatch[]> {
     const key = apiKey || this.API_KEY;
 
     if (!key || key === 'YOUR_PUBG_API_KEY') {
       return of(matchIds.map((id, index) => this.generateMockMatch(id, index)));
+    }
+
+    if (matchIds.length === 0) {
+      return of([]);
     }
 
     const headers = new HttpHeaders({
@@ -180,13 +188,9 @@ export class PubgMatchService {
     });
 
     // Use forkJoin to wait for all requests
-    return new Observable(observer => {
-      Promise.all(matchRequests.map(req => req.toPromise())).then(results => {
-        const matches = results.filter(match => match !== null) as PubgMatch[];
-        observer.next(matches);
-        observer.complete();
-      });
-    });
+    return forkJoin(matchRequests).pipe(
+      map(results => results.filter(match => match !== null) as PubgMatch[])
+    );
   }
 
   private getMockPlayerMatches(playerName: string): Observable<string[]> {
@@ -217,7 +221,8 @@ export class PubgMatchService {
           placement: p + 1,
           survivalTime: Math.floor(Math.random() * 1800) + 300,
           walkDistance: Math.floor(Math.random() * 3000) + 500,
-          rideDistance: Math.floor(Math.random() * 2000)
+          rideDistance: Math.floor(Math.random() * 2000),
+          swimDistance: Math.floor(Math.random() * 200)
         }
       });
     }

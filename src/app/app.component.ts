@@ -121,16 +121,15 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
           </div>
 
           <div class="input-group">
-            <label for="shard">Shard</label>
-            <select
+            <label for="shard">Платформа</label>
+            <input
               id="shard"
               [(ngModel)]="selectedShard"
+              readonly
+              value="steam"
               class="shard-select"
-            >
-              <option *ngFor="let shard of shards" [value]="shard">
-                {{ shard }}
-              </option>
-            </select>
+              title="Поддерживается только Steam платформа"
+            />
           </div>
 
           <button
@@ -557,7 +556,7 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
       font-size: 0.9rem;
     }
 
-    .match-input, .shard-select, .api-key-input {
+    .match-input, .shard-select, .api-key-input, .player-input {
       padding: 0.75rem;
       border: 2px solid #e0e0e0;
       border-radius: 8px;
@@ -736,6 +735,7 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
 
       .match-input, .shard-select, .parse-button, .api-key-input, .tournament-input, .tournament-select, .player-input, .search-player-btn, .create-tournament-btn {
         min-width: unset;
+        width: 100%;
       }
 
       .participants-grid {
@@ -763,7 +763,7 @@ export class AppComponent implements OnInit {
   tournamentName = '';
   tournamentMode: TournamentMode = 'squad';
   matchId = '';
-  selectedShard = 'pc-eu';
+  selectedShard = 'steam';
   playerName = '';
   apiKey = '';
   showApiKey = false;
@@ -780,16 +780,7 @@ export class AppComponent implements OnInit {
   errorMessage = '';
 
   readonly shards = [
-    'pc-eu',
-    'pc-na',
-    'pc-as',
-    'pc-oc',
-    'pc-sa',
-    'pc-sea',
-    'console-eu',
-    'console-na',
-    'console-as',
-    'console-oc'
+    'steam'
   ];
 
   ngOnInit(): void {
@@ -912,6 +903,7 @@ export class AppComponent implements OnInit {
           this.pubgService.getMatchesByIds(matchIds, this.selectedShard, this.apiKey.trim()).subscribe({
             next: (matches) => {
               this.loadingPlayer = false;
+
               if (matches.length > 0) {
                 this.foundMatches = matches;
                 this.showMatchModal = true;
@@ -928,13 +920,13 @@ export class AppComponent implements OnInit {
         },
         error: (error) => {
           this.loadingPlayer = false;
-          console.error('Error:', error);
+          console.error('Error fetching player matches:', error);
           this.errorMessage = 'Ошибка при поиске матчей игрока';
         }
       });
     } catch (error) {
       this.loadingPlayer = false;
-      console.error('Error:', error);
+      console.error('Unexpected error:', error);
       this.errorMessage = 'Неожиданная ошибка';
     }
   }
@@ -988,6 +980,9 @@ export class AppComponent implements OnInit {
         'Матчи': player.matchCount,
         'Убийства': player.totalKills,
         'Урон': player.totalDamage,
+        'Пешком (м)': player.totalWalkDistance,
+        'Транспорт (м)': player.totalRideDistance,
+        'Плавание (м)': player.totalSwimDistance,
         'Среднее место': player.averagePosition.toFixed(1)
       }));
     }

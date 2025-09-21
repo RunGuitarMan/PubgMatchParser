@@ -37,6 +37,10 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
           <div class="score-col">Очки</div>
           <div class="matches-col">Матчи</div>
           <div class="kills-col">Убийства</div>
+          <div class="damage-col">Урон</div>
+          <div class="walk-col">Пешком</div>
+          <div class="ride-col">Транспорт</div>
+          <div class="swim-col">Плавание</div>
           <div class="avg-pos-col">Ср. место</div>
         </div>
 
@@ -65,6 +69,10 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
           </div>
           <div class="matches-col">{{ team.matchCount }}</div>
           <div class="kills-col">{{ team.totalKills }}</div>
+          <div class="damage-col">{{ team.totalDamage | number:'1.0-0' }}</div>
+          <div class="walk-col">{{ formatDistance(team.totalWalkDistance) }}</div>
+          <div class="ride-col">{{ formatDistance(team.totalRideDistance) }}</div>
+          <div class="swim-col">{{ formatDistance(team.totalSwimDistance) }}</div>
           <div class="avg-pos-col">{{ team.averagePosition | number:'1.1-1' }}</div>
         </div>
       </div>
@@ -79,6 +87,9 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
           <div class="matches-col">Матчи</div>
           <div class="kills-col">Убийства</div>
           <div class="damage-col">Урон</div>
+          <div class="walk-col">Пешком</div>
+          <div class="ride-col">Транспорт</div>
+          <div class="swim-col">Плавание</div>
           <div class="avg-pos-col">Ср. место</div>
         </div>
 
@@ -104,6 +115,9 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
           <div class="matches-col">{{ player.matchCount }}</div>
           <div class="kills-col">{{ player.totalKills }}</div>
           <div class="damage-col">{{ player.totalDamage | number:'1.0-0' }}</div>
+          <div class="walk-col">{{ formatDistance(player.totalWalkDistance) }}</div>
+          <div class="ride-col">{{ formatDistance(player.totalRideDistance) }}</div>
+          <div class="swim-col">{{ formatDistance(player.totalSwimDistance) }}</div>
           <div class="avg-pos-col">{{ player.averagePosition | number:'1.1-1' }}</div>
         </div>
       </div>
@@ -135,6 +149,9 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
                 <div class="participant-kills">Убийства</div>
                 <div class="participant-damage">Урон</div>
                 <div class="participant-survival">Выживание</div>
+                <div class="participant-walk">Пешком</div>
+                <div class="participant-ride">Транспорт</div>
+                <div class="participant-swim">Плавание</div>
                 <div class="participant-score">Очки</div>
               </div>
 
@@ -147,6 +164,9 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
                 <div class="participant-kills">{{ participant.stats.kills }}</div>
                 <div class="participant-damage">{{ participant.stats.damage }}</div>
                 <div class="participant-survival">{{ formatDuration(participant.stats.survivalTime) }}</div>
+                <div class="participant-walk">{{ formatDistance(participant.stats.walkDistance) }}</div>
+                <div class="participant-ride">{{ formatDistance(participant.stats.rideDistance) }}</div>
+                <div class="participant-swim">{{ formatDistance(participant.stats.swimDistance) }}</div>
                 <div class="participant-score">{{ calculateParticipantScore(participant) }}</div>
               </div>
             </div>
@@ -226,20 +246,20 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
 
     /* Team view grid */
     .table-header {
-      grid-template-columns: 60px 1fr 80px 80px 80px 100px;
+      grid-template-columns: 60px 1fr 80px 80px 80px 80px 80px 80px 80px 100px;
     }
 
     .table-row {
-      grid-template-columns: 60px 1fr 80px 80px 80px 100px;
+      grid-template-columns: 60px 1fr 80px 80px 80px 80px 80px 80px 80px 100px;
     }
 
     /* Players view grid adjustment */
     .standings-table:has(.player-col) .table-header,
     .standings-table:has(.player-col) .table-row {
-      grid-template-columns: 60px 200px 120px 80px 80px 80px 100px 100px;
+      grid-template-columns: 60px 200px 120px 80px 80px 80px 100px 80px 80px 80px 100px;
     }
 
-    .pos-col, .score-col, .matches-col, .kills-col, .damage-col, .avg-pos-col {
+    .pos-col, .score-col, .matches-col, .kills-col, .damage-col, .walk-col, .ride-col, .swim-col, .avg-pos-col {
       text-align: center;
     }
 
@@ -387,7 +407,7 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
 
     .participants-header, .participant-row {
       display: grid;
-      grid-template-columns: 60px 200px 80px 100px 100px 80px;
+      grid-template-columns: 60px 200px 80px 100px 100px 80px 80px 80px 80px;
       gap: 1rem;
       padding: 0.5rem 0;
       border-bottom: 1px solid #e0e0e0;
@@ -400,20 +420,20 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
       color: #333;
     }
 
-    .participant-pos, .participant-kills, .participant-damage, .participant-survival, .participant-score {
+    .participant-pos, .participant-kills, .participant-damage, .participant-survival, .participant-walk, .participant-ride, .participant-swim, .participant-score {
       text-align: center;
     }
 
     @media (max-width: 1200px) {
       .table-header, .table-row {
-        grid-template-columns: 50px 1fr 70px 70px 70px 80px;
+        grid-template-columns: 50px 1fr 70px 70px 70px 60px 60px 60px 60px 80px;
         gap: 0.5rem;
         font-size: 0.9rem;
       }
 
       .standings-table:has(.player-col) .table-header,
       .standings-table:has(.player-col) .table-row {
-        grid-template-columns: 50px 150px 100px 70px 70px 70px 80px 80px;
+        grid-template-columns: 50px 150px 100px 70px 70px 70px 80px 60px 60px 60px 80px;
       }
     }
 
@@ -432,7 +452,7 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
         font-size: 0.85rem;
       }
 
-      .kills-col, .avg-pos-col {
+      .kills-col, .walk-col, .ride-col, .swim-col, .avg-pos-col {
         display: none;
       }
 
@@ -441,7 +461,7 @@ import { Tournament, Team, Player, TournamentMatch } from '../../models/tourname
         font-size: 0.85rem;
       }
 
-      .participant-damage, .participant-survival {
+      .participant-damage, .participant-survival, .participant-walk, .participant-ride, .participant-swim {
         display: none;
       }
 
@@ -556,5 +576,12 @@ export class TournamentStandingsComponent implements OnInit, OnChanges {
 
   trackByPlayerId(index: number, player: Player): string {
     return player.id;
+  }
+
+  formatDistance(meters: number): string {
+    if (meters >= 1000) {
+      return (meters / 1000).toFixed(1) + 'км';
+    }
+    return meters + 'м';
   }
 }

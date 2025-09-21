@@ -22,6 +22,10 @@ export interface Team {
   totalScore: number;
   matchCount: number;
   totalKills: number;
+  totalDamage: number;
+  totalWalkDistance: number;
+  totalRideDistance: number;
+  totalSwimDistance: number;
   averagePosition: number;
   conflicts?: TeamConflict[];
 }
@@ -42,11 +46,36 @@ export interface ScoringSettings {
   mode: ScoringMode;
   placementScoring: PlacementScoring;
   killPoints: number;
+  damagePoints?: DamageScoring;
+  distancePoints?: DistanceScoring;
 }
 
 export interface PlacementScoring {
   type: 'fixed' | 'multiplier';
   values: { [position: number]: number };
+}
+
+export interface DamageScoring {
+  enabled: boolean;
+  pointsPerDamage: number; // points per N damage (e.g., 1 point per 100 damage)
+  damageThreshold: number; // N damage for 1 point
+}
+
+export interface DistanceScoring {
+  enabled: boolean;
+  walk: DistancePointConfig;
+  ride: DistancePointConfig;
+  swim: DistancePointConfig;
+}
+
+export interface DistancePointConfig {
+  enabled: boolean;
+  thresholds: DistanceThreshold[];
+}
+
+export interface DistanceThreshold {
+  distance: number; // distance in meters
+  points: number; // points awarded for this distance
 }
 
 export type ScoringMode = 'solo' | 'team';
@@ -61,6 +90,9 @@ export interface Player {
   totalKills: number;
   totalDamage: number;
   totalSurvivalTime: number;
+  totalWalkDistance: number;
+  totalRideDistance: number;
+  totalSwimDistance: number;
   averagePosition: number;
   excluded?: boolean;
 }
@@ -98,6 +130,7 @@ export interface PubgParticipant {
     survivalTime: number;
     walkDistance: number;
     rideDistance: number;
+    swimDistance: number;
   };
 }
 

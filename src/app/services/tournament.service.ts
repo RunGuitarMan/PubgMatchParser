@@ -109,6 +109,9 @@ export class TournamentService {
           totalKills: 0,
           totalDamage: 0,
           totalSurvivalTime: 0,
+          totalWalkDistance: 0,
+          totalRideDistance: 0,
+          totalSwimDistance: 0,
           averagePosition: 0
         };
         currentPlayers.push(player);
@@ -118,6 +121,9 @@ export class TournamentService {
       player.totalKills += participant.stats.kills;
       player.totalDamage += participant.stats.damage;
       player.totalSurvivalTime += participant.stats.survivalTime;
+      player.totalWalkDistance += participant.stats.walkDistance;
+      player.totalRideDistance += participant.stats.rideDistance;
+      player.totalSwimDistance += participant.stats.swimDistance;
     });
 
     this.players$.next(currentPlayers);
@@ -142,6 +148,10 @@ export class TournamentService {
           totalScore: 0,
           matchCount: 0,
           totalKills: 0,
+          totalDamage: 0,
+          totalWalkDistance: 0,
+          totalRideDistance: 0,
+          totalSwimDistance: 0,
           averagePosition: 0
         };
         currentTeams.push(existingTeam);
@@ -155,6 +165,12 @@ export class TournamentService {
 
       existingTeam.matchCount++;
       existingTeam.totalKills += matchTeam.totalKills;
+
+      // Calculate team totals from players
+      let teamDamage = 0;
+      let teamWalkDistance = 0;
+      let teamRideDistance = 0;
+      let teamSwimDistance = 0;
 
       // Update players
       matchTeam.players.forEach(playerId => {
@@ -172,6 +188,9 @@ export class TournamentService {
               totalKills: 0,
               totalDamage: 0,
               totalSurvivalTime: 0,
+              totalWalkDistance: 0,
+              totalRideDistance: 0,
+              totalSwimDistance: 0,
               averagePosition: 0
             };
             currentPlayers.push(player);
@@ -182,8 +201,23 @@ export class TournamentService {
           player.totalKills += participant.stats.kills;
           player.totalDamage += participant.stats.damage;
           player.totalSurvivalTime += participant.stats.survivalTime;
+          player.totalWalkDistance += participant.stats.walkDistance;
+          player.totalRideDistance += participant.stats.rideDistance;
+          player.totalSwimDistance += participant.stats.swimDistance;
+
+          // Add to team totals
+          teamDamage += participant.stats.damage;
+          teamWalkDistance += participant.stats.walkDistance;
+          teamRideDistance += participant.stats.rideDistance;
+          teamSwimDistance += participant.stats.swimDistance;
         }
       });
+
+      // Update team totals
+      existingTeam.totalDamage += teamDamage;
+      existingTeam.totalWalkDistance += teamWalkDistance;
+      existingTeam.totalRideDistance += teamRideDistance;
+      existingTeam.totalSwimDistance += teamSwimDistance;
     });
 
     this.teams$.next(currentTeams);
@@ -355,6 +389,10 @@ export class TournamentService {
 
         if (teamParticipants.length > 0) {
           const teamKills = teamParticipants.reduce((sum, p) => sum + p.stats.kills, 0);
+          const teamDamage = teamParticipants.reduce((sum, p) => sum + p.stats.damage, 0);
+          const teamWalkDistance = teamParticipants.reduce((sum, p) => sum + p.stats.walkDistance, 0);
+          const teamRideDistance = teamParticipants.reduce((sum, p) => sum + p.stats.rideDistance, 0);
+          const teamSwimDistance = teamParticipants.reduce((sum, p) => sum + p.stats.swimDistance, 0);
           const teamPlacement = teamParticipants[0]?.stats.placement || 0; // Assuming same placement for team
 
           const killScore = teamKills * tournament.scoringSettings.killPoints;
@@ -364,7 +402,22 @@ export class TournamentService {
             killScore
           );
 
-          team.totalScore += killScore + placementScore;
+          // Calculate new scoring types
+          let damageScore = 0;
+          let distanceScore = 0;
+
+          if (tournament.scoringSettings.damagePoints) {
+            damageScore = this.calculateDamageScore(teamDamage, tournament.scoringSettings.damagePoints);
+          }
+
+          if (tournament.scoringSettings.distancePoints) {
+            const walkScore = this.calculateDistanceScore(teamWalkDistance, tournament.scoringSettings.distancePoints.walk);
+            const rideScore = this.calculateDistanceScore(teamRideDistance, tournament.scoringSettings.distancePoints.ride);
+            const swimScore = this.calculateDistanceScore(teamSwimDistance, tournament.scoringSettings.distancePoints.swim);
+            distanceScore = walkScore + rideScore + swimScore;
+          }
+
+          team.totalScore += killScore + placementScore + damageScore + distanceScore;
           totalPlacement += teamPlacement;
         }
       });
@@ -393,7 +446,69 @@ export class TournamentService {
           1: 13, 2: 11, 3: 9, 4: 8, 5: 6, 6: 4, 7: 2, 8: 1
         }
       },
-      killPoints: 1
+      killPoints: 1,
+      damagePoints: {
+        enabled: false,
+        pointsPerDamage: 0,
+        damageThreshold: 100
+      },
+      distancePoints: {
+        enabled: false,
+        walk: {
+          enabled: false,
+          thresholds: []
+        },
+        ride: {
+          enabled: false,
+          thresholds: []
+        },
+        swim: {
+          enabled: false,
+          thresholds: []
+        }
+      }
+    };
+  }
+
+  getExperimentalScoringSettings(): ScoringSettings {
+    return {
+      mode: 'team',
+      placementScoring: {
+        type: 'fixed',
+        values: {
+          1: 13, 2: 11, 3: 9, 4: 8, 5: 6, 6: 4, 7: 2, 8: 1
+        }
+      },
+      killPoints: 1,
+      damagePoints: {
+        enabled: true,
+        pointsPerDamage: 1,
+        damageThreshold: 100 // 1 point per 100 damage
+      },
+      distancePoints: {
+        enabled: true,
+        walk: {
+          enabled: true,
+          thresholds: [
+            { distance: 1500, points: 0.5 }, // 0.5 points for first 1.5km
+            { distance: 3000, points: 1.5 }  // 1.5 points total for 3km
+          ]
+        },
+        ride: {
+          enabled: true,
+          thresholds: [
+            { distance: 2000, points: 0.3 }, // 0.3 points for first 2km
+            { distance: 5000, points: 1.0 }  // 1.0 points total for 5km
+          ]
+        },
+        swim: {
+          enabled: true,
+          thresholds: [
+            { distance: 500, points: 0.2 },  // 0.2 points for first 500m
+            { distance: 1000, points: 0.5 }  // 0.5 points total for 1km
+          ]
+        }
+      }
     };
   }
 
@@ -439,6 +554,25 @@ export class TournamentService {
       this.teams$.next(data.teams || []);
       this.players$.next(data.players || []);
     }
+  }
+
+  private calculateDamageScore(totalDamage: number, damagePoints: any): number {
+    if (!damagePoints.enabled) return 0;
+    return Math.floor(totalDamage / damagePoints.damageThreshold) * damagePoints.pointsPerDamage;
+  }
+
+  private calculateDistanceScore(distance: number, config: any): number {
+    if (!config.enabled) return 0;
+
+    let points = 0;
+    for (const threshold of config.thresholds) {
+      if (distance >= threshold.distance) {
+        points = threshold.points;
+      } else {
+        break;
+      }
+    }
+    return points;
   }
 
   private generateId(): string {
