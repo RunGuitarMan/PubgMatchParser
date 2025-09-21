@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { PubgMatchService } from './services/pubg-match.service';
 import { TournamentService } from './services/tournament.service';
 import { StorageService } from './services/storage.service';
@@ -12,6 +13,94 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
 
 @Component({
     selector: 'app-root',
+    imports: [
+        CommonModule,
+        RouterOutlet,
+        RouterLink,
+        RouterLinkActive
+    ],
+    template: `
+      <nav class="main-nav">
+        <div class="nav-container">
+          <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            Главная
+          </a>
+          <a routerLink="/stream" class="nav-link" routerLinkActive="active">
+            Стрим
+          </a>
+        </div>
+      </nav>
+      <main class="main-content">
+        <router-outlet></router-outlet>
+      </main>
+    `,
+    styles: [`
+      .main-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .nav-container {
+        display: flex;
+        gap: 2rem;
+        padding: 1rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .nav-link {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+      }
+
+      .nav-link:hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .nav-link.active {
+        color: #ffd700;
+        background: rgba(255, 215, 0, 0.1);
+      }
+
+      .main-content {
+        padding-top: 60px;
+        min-height: 100vh;
+      }
+
+      @media (max-width: 768px) {
+        .nav-container {
+          padding: 0.75rem 1rem;
+          gap: 1rem;
+        }
+
+        .nav-link {
+          font-size: 0.9rem;
+          padding: 0.4rem 0.8rem;
+        }
+
+        .main-content {
+          padding-top: 50px;
+        }
+      }
+    `]
+})
+export class AppComponent {
+}
+
+@Component({
+    selector: 'app-main',
     imports: [
         CommonModule,
         FormsModule,
@@ -1384,7 +1473,7 @@ import { PubgMatch, Tournament, TournamentMode, ScoringSettings, TeamConflict } 
     }
   `]
 })
-export class AppComponent implements OnInit {
+export class MainComponent implements OnInit {
   private pubgService = inject(PubgMatchService);
   private tournamentService = inject(TournamentService);
   private storageService = inject(StorageService);
