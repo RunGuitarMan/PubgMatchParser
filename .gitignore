@@ -1,0 +1,121 @@
+### Angular & TypeScript ###
+# Скомпилированный вывод
+dist/
+tmp/
+out-tsc/
+compiled/
+build/
+
+# JS артефакты (если кто-то случайно закоммитил)
+app/**/*.js
+app/**/*.js.map
+e2e/*.js
+e2e/*.map
+
+# Зависимости
+node_modules/
+bower_components/
+
+# Кэш, временные файлы и прочее
+.angular/
+.nx/
+.vite/
+.cache/
+.cache-loader/
+.storybook/
+storybook-static/
+coverage/
+typings/
+libpeerconnection.log
+connect.lock
+
+# Логи
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+testem.log
+karma-*.log
+
+# ESLint / Prettier / Stylelint кэши
+.eslintcache
+.prettiercache
+.stylelintcache
+
+# NPM/Yarn cache
+.npm/
+.yarn/
+.pnp.*
+.pnp.loader.mjs
+
+# Локальные env файлы
+.env
+.env.*
+!.env.example
+
+# VS Code
+.vscode/
+.history/
+.vscode-test/
+*.code-workspace
+
+# JetBrains / IntelliJ / WebStorm / Rider ###
+# Пользовательские файлы
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# AWS User-specific
+.idea/**/aws.xml
+
+# Сгенерированные файлы
+.idea/**/contentModel.xml
+
+# Чувствительные или часто меняющиеся файлы
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Gradle
+.idea/**/gradle.xml
+.idea/**/libraries
+cmake-build-*/
+
+# Mongo Explorer plugin
+.idea/**/mongoSettings.xml
+
+# IntelliJ артефакты
+.idea_modules/
+.idea/replstate.xml
+.idea/sonarlint/
+.idea/httpRequests
+.idea/caches/build_file_checksums.ser
+out/
+.idea/**/**
+
+# Плагины
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Разное
+*.iws
+
+# OS-specific ###
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+$RECYCLE.BIN/
+.AppleDouble
+.LSOverride
